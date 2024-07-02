@@ -8,13 +8,16 @@ export class Menu {
     this.items = items;
   }
   serialize(): string {
-    return this.items.reduce((str, item) => {
+    let str = "-----------------------------------------------";
+    str = this.items.reduce((str, item) => {
       if (str) {
         str += "\n";
       }
       str += `${item.key}.\t${item.label}`;
       return str;
-    }, "");
+    }, str);
+    str += "\n-----------------------------------------------";
+    return str;
   }
   getItem(key: string) {
     return this.items.find((i) => i.key === key) || null;

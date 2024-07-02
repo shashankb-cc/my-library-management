@@ -1,3 +1,5 @@
 import { LibraryInteractor } from "./library.interactor";
-const libInteractor = new LibraryInteractor();
-libInteractor.showMenu();
+
+const libraryInteractor = new LibraryInteractor();
+
+libraryInteractor.showMenu();

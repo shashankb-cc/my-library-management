@@ -15,16 +15,31 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
     books.push(book);
     return book;
   }
+
   update(id: number, data: IBookBase): IBook | null {
-    throw new Error("Method not implemented.");
+    const book = books.find((book) => book.id === id);
+    if (book) {
+      book.title = data.title;
+      book.author = data.author;
+      book.isbnNo = data.isbnNo;
+      book.numOfPages = data.numOfPages;
+      book.publisher = data.publisher;
+      book.totalNumOfCopies = data.totalNumOfCopies;
+      book.genre = data.genre;
+      return book;
+    }
+    return null;
   }
+
   delete(id: number): IBook | null {
     throw new Error("Method not implemented.");
   }
+
   getById(id: number): IBook | null {
     const book = books.find((b) => b.id === id);
     return book || null;
   }
+
   list(params: IPageRequest): IPagesResponse<IBook> {
     const search = params.search?.toLocaleLowerCase();
     const filteredBooks = search

@@ -7,28 +7,28 @@ const menu = new Menu([
   { key: "1", label: "Book Management" },
   { key: "2", label: "Member Management" },
   { key: "3", label: "Transaction" },
-  { key: "4", label: "Today's due list" },
-  { key: "5", label: "Exit" },
+  { key: "4", label: "exit" },
 ]);
-
 export class LibraryInteractor implements IInteractor {
-  private readonly bookIteractor = new BookInteractor();
   async showMenu(): Promise<void> {
+    console.log("\n-----------------------------------------------");
+    console.log("Main Menu");
     const op = await readChar(menu.serialize());
-    const menuItem = menu.getItem(op);
-    if (menuItem) {
-      console.log(`Choice: ${menuItem.key}\t${menuItem.label}`);
-    }
-
-    switch (op.toLowerCase()) {
+    switch (op) {
       case "1":
-        await this.bookIteractor.showMenu();
+        console.log("\n-----------------------------------------------");
+        console.log(" Book Management");
+        const bookInteractor = new BookInteractor(this);
+        bookInteractor.showMenu();
         break;
-      case "5":
+
+      case "2":
+        break;
+      case "3":
+        break;
+
+      case "4":
         process.exit(0);
-      default:
-        console.log("Invalid input");
     }
-    await this.showMenu();
   }
 }
