@@ -1,31 +1,5 @@
 import readline from "node:readline";
-const readChar = (question: string): Promise<string> => {
-  console.log(question);
-  return new Promise((resolve) => {
-    process.stdin.setRawMode(true);
-    process.stdin.setEncoding("utf8");
-    const onData = async (key: Buffer) => {
-      const char = key.toString("utf-8");
-      process.stdin.setRawMode(false);
-      resolve(char);
-    };
-    process.stdin.resume();
-    process.stdin.once("data", onData);
-  });
-};
-
-const readLine = (question: string): Promise<string> => {
-  return new Promise((resolve) => {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-    rl.question(question, (answer) => {
-      rl.close();
-      resolve(answer);
-    });
-  });
-};
+import { readChar, readLine } from "../core/input.utils";
 
 async function loop() {
   while (true) {
