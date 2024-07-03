@@ -1,4 +1,3 @@
-import { Readline } from "node:readline/promises";
 import { readChar, readLine } from "../core/input.utils";
 import { IInteractor } from "../core/interactor";
 import { BookRepository } from "./book.repository";
@@ -16,10 +15,13 @@ export class BookInteractor implements IInteractor {
     switch (op.toLowerCase()) {
       case "1":
         await addBook(this.repo);
+        // console.table(this.repo.list({ limit: 1000, offset: 0 }).items);
+
         break;
       case "2":
         break;
       case "3":
+        // console.table(this.repo.list({ limit: 1000, offset: 0 }).items);
         break;
       case "4":
         break;
@@ -53,5 +55,5 @@ async function addBook(repo: BookRepository) {
   const book: IBookBase = await getBookInput();
   const createdBook = repo.create(book);
   console.log(`Book added successfully!\nBook ID:${createdBook.id}`);
-  console.table(book);
+  console.table(createdBook);
 }
