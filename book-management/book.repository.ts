@@ -1,22 +1,24 @@
 import { IPageRequest, IPagesResponse } from "../core/pagination";
 import { IRepository } from "../core/repository";
+import { Database } from "../db/ds";
 import { IBook, IBookBase } from "./models/books.model";
 
 const books: IBook[] = [];
 
 export class BookRepository implements IRepository<IBookBase, IBook> {
-  create(data: IBookBase): IBook {
-    //TODO:impl validation
+  constructor(private db: Database) {}
+  async create(data: IBookBase): Promise<IBook> {
     const book: IBook = {
       ...data,
       id: books.length + 1,
       availableNumberOfCopies: data.totalNumOfCopies,
     };
     books.push(book);
+    await this.db.save();
     return book;
   }
 
-  update(id: number, data: IBookBase): IBook | null {
+  async update(id: number, data: IBookBase): Promise<IBook> | null {
     const book = books.find((book) => book.id === id);
     if (book) {
       book.title = data.title;
@@ -31,7 +33,7 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
     return null;
   }
 
-  delete(id: number): IBook | null {
+  async delete(id: number): Promise<IBook> | null {
     const index = books.findIndex((book) => book.id === id);
     if (index === -1) return null;
     const deletedBook = books.splice(index, 1);
