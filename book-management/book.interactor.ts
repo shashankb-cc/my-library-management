@@ -1,10 +1,12 @@
-import { readLine } from "../core/input.utils";
+import { ZodError } from "zod";
+import { readChar, readLine } from "../core/input.utils";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
 import { IPageRequest } from "../core/pagination";
 import { Database } from "../db/ds";
 import { BookRepository } from "./book.repository";
-import { IBook, IBookBase } from "./models/books.model";
+import { IBook, IBookBase, bookSchema } from "./models/books.model";
+import chalk from "chalk";
 const menu = new Menu("Book-Management", [
   { key: "1", label: "Add Book" },
   { key: "2", label: "Edit Book" },
@@ -110,10 +112,28 @@ async function getBookInputToUpdate(CurrentBook: IBook) {
 }
 
 async function addBook(repo: BookRepository) {
-  const book: IBookBase = await getBookInput();
-  const createdBook = await repo.create(book);
-  console.log(`Book added successfully!\nBook ID:${createdBook.id}`);
-  console.table(createdBook);
+  while (true) {
+    try {
+      const book: IBookBase = await getBookInput();
+      const parser = bookSchema.parse(book);
+      const createdBook = repo.create(book);
+      console.log(
+        `Book added successfully!\nBook ID:${(await createdBook).id}`
+      );
+      console.table(createdBook);
+      break;
+    } catch (error: unknown) {
+      if (error instanceof ZodError) {
+        console.log(
+          chalk.red("\nData is invalid! Please enter the valid data")
+        );
+        const errors = error.flatten().fieldErrors;
+        Object.entries(errors).forEach((e) => {
+          console.log(`${e[0]}: ${chalk.red(e[1])}`);
+        });
+      }
+    }
+  }
 }
 
 async function updateBook(repo: BookRepository) {

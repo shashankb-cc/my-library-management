@@ -1,7 +1,11 @@
 import { BookInteractor } from "../book-management/book.interactor";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
+<<<<<<< HEAD
 import { Database } from "../db/ds";
+=======
+import { MemberInteractor } from "../member-management/member.interactor";
+>>>>>>> ba69d40 (added zod schema for validating input data in book.interactor, partially implemented member.interactor and added tests for the same)
 
 const menu = new Menu("Library-Management", [
   { key: "1", label: "Book Management" },
@@ -20,6 +24,10 @@ export class LibraryInteractor implements IInteractor {
         break;
 
       case "2":
+        console.log("\n-----------------------------------------------");
+        console.log(" member Management");
+        const memberInteractor = new MemberInteractor(this);
+        memberInteractor.showMenu();
         break;
       case "3":
         break;
