@@ -1,23 +1,27 @@
 import { IPageRequest, IPagesResponse } from "../core/pagination";
 import { IRepository } from "../core/repository";
+import { Database } from "../db/ds";
 import { IBook, IBookBase } from "./models/books.model";
 
-const books: IBook[] = [];
-
 export class BookRepository implements IRepository<IBookBase, IBook> {
-  create(data: IBookBase): IBook {
-    //TODO:impl validation
+  constructor(private db: Database) {}
+  private get books(): IBook[] {
+    return this.db.table<IBook>("books");
+  }
+  async create(data: IBookBase): Promise<IBook> {
     const book: IBook = {
       ...data,
-      id: books.length + 1,
+      id: this.books.length + 1,
       availableNumberOfCopies: data.totalNumOfCopies,
     };
-    books.push(book);
+
+    this.books.push(book);
+    await this.db.save();
     return book;
   }
 
-  update(id: number, data: IBookBase): IBook | null {
-    const book = books.find((book) => book.id === id);
+  async update(id: number, data: IBookBase): Promise<IBook | null> {
+    const book = this.books.find((book) => book.id === id);
     if (book) {
       book.title = data.title;
       book.author = data.author;
@@ -31,27 +35,28 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
     return null;
   }
 
-  delete(id: number): IBook | null {
-    const index = books.findIndex((book) => book.id === id);
+  async delete(id: number): Promise<IBook | null> {
+    const index = this.books.findIndex((book) => book.id === id);
     if (index === -1) return null;
-    const deletedBook = books.splice(index, 1);
+    const deletedBook = this.books.splice(index, 1);
+    await this.db.save();
     return deletedBook[0];
   }
 
-  getById(id: number): IBook | null {
-    const book = books.find((b) => b.id === id);
+  async getById(id: number): Promise<IBook | null> {
+    const book = this.books.find((b) => b.id === id);
     return book || null;
   }
 
   list(params: IPageRequest): IPagesResponse<IBook> {
     const search = params.search?.toLocaleLowerCase();
     const filteredBooks = search
-      ? books.filter(
+      ? this.books.filter(
           (b) =>
             b.title.toLowerCase().includes(search) ||
             b.isbnNo.toLowerCase().includes(search)
         )
-      : books; //.slice(params.offset, params.offset + params.limit);
+      : this.books; //.slice(params.offset, params.offset + params.limit);
     return {
       items: filteredBooks.slice(params.offset, params.offset + params.limit),
       pagination: {

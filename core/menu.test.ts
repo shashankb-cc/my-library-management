@@ -14,18 +14,20 @@ describe("Menu Test", () => {
       { key: "3", label: "Search Book" },
     ];
 
-    //TODO Member management menu Test
-    //@ts-expect-error
-    const meberManagementMenu: IMenuItem = [];
-
-    const libraryManagementMenu = new Menu(libraryManagementMenuItem);
+    const libraryManagementMenu = new Menu(
+      "Library Management",
+      libraryManagementMenuItem
+    );
     expect(libraryManagementMenu.serialize()).toBe(
-      "1.\tBook Management\n2.\tMember Management\n3.\tTransaction"
+      "Library Management\n1.\tBook Management\n2.\tMember Management\n3.\tTransaction\n\nChoice - "
     );
 
-    const bookManagementMenu = new Menu(bookManagementMenuItem);
+    const bookManagementMenu = new Menu(
+      "Book Management",
+      bookManagementMenuItem
+    );
     expect(bookManagementMenu.serialize()).toBe(
-      "1.\tAdd Book\n2.\tUpdate Book\n3.\tSearch Book"
+      "Book Management\n1.\tAdd Book\n2.\tUpdate Book\n3.\tSearch Book\n\nChoice - "
     );
   });
 });

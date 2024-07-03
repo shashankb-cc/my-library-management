@@ -2,11 +2,11 @@ import { IPageRequest, IPagesResponse } from "./pagination";
 
 export interface IRepository<
   MutationModel,
-  CompleteModel extends MutationModel
+  CompleteModel extends MutationModel,
 > {
-  create(data: MutationModel): CompleteModel;
-  update(id: number, data: MutationModel): CompleteModel | null;
-  delete(id: number): CompleteModel | null;
-  getById(id: number): CompleteModel | null;
+  create(data: MutationModel): Promise<CompleteModel>;
+  update(id: number, data: MutationModel): Promise<CompleteModel | null>;
+  delete(id: number): Promise<CompleteModel | null>;
+  getById(id: number): Promise<CompleteModel | null>;
   list(params: IPageRequest): IPagesResponse<CompleteModel>;
 }
