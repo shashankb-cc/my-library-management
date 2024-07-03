@@ -1,4 +1,9 @@
-import { NumberParser, readLine, StringParser } from "../core/input.utils";
+import {
+  NumberParser,
+  readChar,
+  readLine,
+  StringParser,
+} from "../core/input.utils";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
 import { IMember, IMemberBase, memberSchema } from "./models/member.model";
@@ -14,9 +19,9 @@ const menu = new Menu("Member-Management", [
   { key: "1", label: "Add Member" },
   { key: "2", label: "Edit Member" },
   { key: "3", label: "Search Member" },
-  { key: "4", label: "List Members" },
-  { key: "6", label: "Delete Member" },
-  { key: "7", label: "<Previous Menu>" },
+  { key: "4", label: "List Members " },
+  { key: "5", label: "Delete Member" },
+  { key: "6", label: "<Previous Menu>" },
 ]);
 
 export class MemberInteractor implements IInteractor {
@@ -40,12 +45,12 @@ export class MemberInteractor implements IInteractor {
           await searchMember(this.repo);
           break;
         case "4":
-          await listMember(this.repo);
+          await viewCompleteList(this.repo);
           break;
-        case "6":
+        case "5":
           await deleteMember(this.repo);
           break;
-        case "7":
+        case "6":
           loop = false;
           await this.libraryInteractor.showMenu();
           break;
@@ -60,7 +65,7 @@ async function addMember(repo: MemberRepository) {
       const member: IMemberBase = await getMemberInput();
       const validateMember = memberSchema.parse(member);
       const createdMember = await repo.create(validateMember);
-      console.log(`Book added successfully!\nBook ID:${createdMember.id}`);
+      console.log(`Member added successfully!\nMember ID:${createdMember.id}`);
       console.table(createdMember);
       break;
     } catch (error: unknown) {
@@ -140,31 +145,8 @@ async function searchMember(repo: MemberRepository): Promise<IMember | null> {
   }
 }
 
-async function listMember(repo: MemberRepository) {
-  const param =
-    (await readLine(
-      "\nPlease Enter the Search (You can search by ID, Name and Email):",
-      StringParser(true, true)
-    )) || undefined;
-  const offset = await readLine(
-    "Please enter the search offset value (this determines where to start the search from, e.g., 0 for the beginning):",
-    NumberParser()
-  );
-  const limit = await readLine(
-    "Please enter the search limit value (this determines the number of results to return):",
-    NumberParser()
-  );
-  const params: IPageRequest = {
-    search: param,
-    offset: offset!,
-    limit: limit!,
-  };
-  const memberList = repo.list(params);
-  console.table(memberList.items);
-}
-
 async function deleteMember(repo: MemberRepository) {
-  const id = await readLine("Please Enter the Member Id:", NumberParser());
+  const id = (await readLine("Please Enter the Member Id:", NumberParser()))!;
   const member = await repo.getById(id!);
   if (!member) {
     console.log("---------------------Note------------------------");
@@ -173,7 +155,73 @@ async function deleteMember(repo: MemberRepository) {
     );
     console.log("--------------------------------------------------");
   } else {
-    await repo.delete(id!);
-    console.log(`Book with a Id ${id} deleted successfully\n`);
+    await repo.delete(id);
+    console.log(`Member with a Id ${id} deleted successfully\n`);
   }
+}
+async function viewCompleteList(repo: MemberRepository) {
+  let currentPage: number;
+  const search = await readLine(
+    "\nPlease Enter the Search Text (You can search by Member Id or Name ):",
+    StringParser(true, true)
+  );
+  const offset =
+    (await readLine(
+      "Please enter the search offset value (this determines where to start the search from, e.g., 1 for the beginning):",
+      NumberParser(true)
+    ))! || 0;
+  const limit =
+    (await readLine(
+      "Please enter the search limit value (this determines the number of results to return):",
+      NumberParser(true)
+    ))! || 10;
+  currentPage = 0;
+  if (offset) {
+    currentPage = Math.floor(offset / limit);
+  }
+
+  const loadData = async () => {
+    const validateOffset = currentPage * limit + (offset % limit) - 1;
+    const result = await repo.list({
+      search: search || undefined,
+      offset: validateOffset > 0 ? validateOffset : 0,
+      limit: limit,
+    });
+    if (result.items.length > 0) {
+      console.log(`\n\nPage: ${currentPage + 1}`);
+      console.table(result.items);
+      const hasPreviousPage = currentPage > 0;
+      const hasNextPage =
+        result.pagination.limit + result.pagination.offset <
+        result.pagination.total;
+      if (hasPreviousPage) {
+        console.log(`p\tPrevious Page`);
+      }
+      if (hasNextPage) {
+        console.log(`n\tNext Page`);
+      }
+      if (hasPreviousPage || hasNextPage) {
+        console.log(`q\tExit List`);
+        const askChoice = async () => {
+          const op = await readChar("\nChoice - ");
+          console.log(op, "\n\n");
+          if (op === "p" && hasPreviousPage) {
+            currentPage--;
+            await loadData();
+          } else if (op === "n" && hasNextPage) {
+            currentPage++;
+            await loadData();
+          } else if (op !== "q") {
+            console.log("---", op, "---");
+            console.log("\n\nInvalid input");
+            await askChoice();
+          }
+        };
+        await askChoice();
+      }
+    } else {
+      console.log("\n\nNo data to show\n");
+    }
+  };
+  await loadData();
 }
