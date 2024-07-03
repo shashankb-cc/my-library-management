@@ -29,6 +29,7 @@ export class LibraryInteractor implements IInteractor {
 
       case "4":
         process.exit(0);
+        break;
     }
   }
 }

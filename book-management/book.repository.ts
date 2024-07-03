@@ -32,7 +32,10 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
   }
 
   delete(id: number): IBook | null {
-    throw new Error("Method not implemented.");
+    const index = books.findIndex((book) => book.id === id);
+    if (index === -1) return null;
+    const deletedBook = books.splice(index, 1);
+    return deletedBook[0];
   }
 
   getById(id: number): IBook | null {
