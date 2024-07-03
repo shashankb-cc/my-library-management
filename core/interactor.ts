@@ -1,4 +1,3 @@
-export interface IInteractor{
-    showMenu():void;
-    
+export interface IInteractor {
+  showMenu(): void;
 }
