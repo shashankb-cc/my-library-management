@@ -16,12 +16,11 @@ const menu = new Menu("Book-Management", [
 export class BookInteractor implements IInteractor {
   constructor(
     public libraryInteractor: IInteractor,
-    private db: Database
+    private readonly db: Database
   ) {}
   private repo = new BookRepository(this.db);
   async showMenu(): Promise<void> {
-    let loop = true;
-    while (loop) {
+    while (true) {
       const op = await menu.show();
       if (op) {
         switch (op?.key.toLocaleLowerCase()) {
@@ -37,15 +36,11 @@ export class BookInteractor implements IInteractor {
           case "4":
             await listBooks(this.repo);
           case "5":
-            deleteBook(this.repo);
-            break;
-          case "5":
-            this.libraryInteractor.showMenu();
+            await deleteBook(this.repo);
             break;
           case "6":
-            loop = false;
+            this.libraryInteractor.showMenu();
             break;
-
           default:
             break;
         }
@@ -116,27 +111,31 @@ async function getBookInputToUpdate(CurrentBook: IBook) {
 
 async function addBook(repo: BookRepository) {
   const book: IBookBase = await getBookInput();
-  const createdBook = repo.create(book);
+  const createdBook = await repo.create(book);
   console.log(`Book added successfully!\nBook ID:${createdBook.id}`);
   console.table(createdBook);
 }
 
 async function updateBook(repo: BookRepository) {
-  const bookId: number = +(await readLine("Please Enter the Book ID:"));
-  const CurrentBook: IBook | null = repo.getById(bookId);
-  if (!CurrentBook) {
-    await readLine("Please Enter valid Book Id");
-    return;
+  let loop = true;
+  while (loop) {
+    const bookId: number = +(await readLine("Please Enter the Book ID:"));
+    const CurrentBook: IBook | null = await repo.getById(bookId);
+    if (!CurrentBook) {
+      await readLine("Please Enter valid Book Id");
+    } else {
+      loop = false;
+      const book: IBookBase = await getBookInputToUpdate(CurrentBook);
+      const updatedBook = repo.update(bookId, book);
+      console.table(updatedBook);
+    }
   }
-  const book: IBookBase = await getBookInputToUpdate(CurrentBook);
-  const updatedBook = repo.update(bookId, book);
-  console.table(updatedBook);
 }
 
-async function searchBook(repo: BookRepository): Promise<IBook> {
+async function searchBook(repo: BookRepository): Promise<IBook | null> {
   while (true) {
     const id = +(await readLine("Please Enter the Book Id:"));
-    const book = repo.getById(id);
+    const book = await repo.getById(id);
     if (!book) {
       console.log("---------------------Note------------------------");
       console.log("\nNo Book found!!  Please Enter Valid Book ID!!!\n");
@@ -169,7 +168,7 @@ async function listBooks(repo: BookRepository) {
 }
 async function deleteBook(repo: BookRepository) {
   const id = +(await readLine("Please Enter the Book Id:"));
-  const book = repo.getById(id);
+  const book = await repo.getById(id);
   if (!book) {
     console.log("---------------------Note------------------------");
     console.log("\nNo Book found!!  Please Enter Valid Book ID!!!\n");

@@ -10,7 +10,7 @@ const menu = new Menu("Library-Management", [
   { key: "4", label: "exit" },
 ]);
 export class LibraryInteractor implements IInteractor {
-  constructor(private db: Database) {}
+  constructor(private readonly db: Database) {}
   async showMenu(): Promise<void> {
     const op = await menu.show();
     switch (op?.key.toLocaleLowerCase()) {
