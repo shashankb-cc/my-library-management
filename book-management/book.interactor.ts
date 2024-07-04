@@ -1,5 +1,5 @@
 import { ZodError } from "zod";
-import { readChar, readLine } from "../core/input.utils";
+import { readLine } from "../core/input.utils";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
 import { IPageRequest } from "../core/pagination";
@@ -7,23 +7,25 @@ import { Database } from "../db/ds";
 import { BookRepository } from "./book.repository";
 import { IBook, IBookBase, bookSchema } from "./models/books.model";
 import chalk from "chalk";
-const menu = new Menu("Book-Management", [
-  { key: "1", label: "Add Book" },
-  { key: "2", label: "Edit Book" },
-  { key: "3", label: "Search Book" },
-  { key: "4", label: "List Books" },
-  { key: "5", label: "Delete Book" },
-  { key: "6", label: "<Previous Menu>" },
-]);
+import { LibraryInteractor } from "../src/library.interactor";
+
 export class BookInteractor implements IInteractor {
+  menu = new Menu("Book-Management", [
+    { key: "1", label: "Add Book" },
+    { key: "2", label: "Edit Book" },
+    { key: "3", label: "Search Book" },
+    { key: "4", label: "List Books" },
+    { key: "5", label: "Delete Book" },
+    { key: "6", label: "<Previous Menu>" },
+  ]);
   constructor(
-    public libraryInteractor: IInteractor,
+    public libraryInteractor: LibraryInteractor,
     private readonly db: Database
   ) {}
   private repo = new BookRepository(this.db);
   async showMenu(): Promise<void> {
     while (true) {
-      const op = await menu.show();
+      const op = await this.menu.show();
       if (op) {
         switch (op?.key.toLocaleLowerCase()) {
           case "1":
@@ -37,30 +39,32 @@ export class BookInteractor implements IInteractor {
             break;
           case "4":
             await listBooks(this.repo);
+            break;
           case "5":
             await deleteBook(this.repo);
             break;
           case "6":
-            this.libraryInteractor.showMenu();
-            break;
+            await this.libraryInteractor.showMenu();
           default:
             break;
         }
       } else {
-        console.log("Invalid Option");
+        console.log("-----------------");
+        console.log("| Invalid option |");
+        console.log("-----------------");
       }
     }
   }
 }
 async function getBookInput() {
-  const title = await readLine("Please Enter the Title:");
-  const author = await readLine("Please Enter the Author:");
-  const publisher = await readLine("Please Enter the Publisher:");
-  const genre = await readLine("Please Enter the Genre:");
-  const isbnNo = await readLine("Please Enter the ISBN:");
-  const numOfPages = await readLine("Please Enter the Number of Pages:");
+  const title = await readLine("Please Enter the Title: ");
+  const author = await readLine("Please Enter the Author: ");
+  const publisher = await readLine("Please Enter the Publisher: ");
+  const genre = await readLine("Please Enter the Genre: ");
+  const isbnNo = await readLine("Please Enter the ISBN: ");
+  const numOfPages = await readLine("Please Enter the Number of Pages: ");
   const totalNumOfCopies = await readLine(
-    "Please Enter the Total Number of Copies:"
+    "Please Enter the Total Number of Copies: "
   );
   return {
     title: title,
@@ -115,11 +119,9 @@ async function addBook(repo: BookRepository) {
   while (true) {
     try {
       const book: IBookBase = await getBookInput();
-      const parser = bookSchema.parse(book);
-      const createdBook = repo.create(book);
-      console.log(
-        `Book added successfully!\nBook ID:${(await createdBook).id}`
-      );
+      const validatedBook = bookSchema.parse(book);
+      const createdBook = await repo.create(validatedBook);
+      console.log(`Book added successfully!\nBook ID:${createdBook.id}`);
       console.table(createdBook);
       break;
     } catch (error: unknown) {
