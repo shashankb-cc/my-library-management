@@ -18,7 +18,7 @@ export class Menu {
       return str;
     }, `${this.title}`);
 
-    str += "\n\nChoice - ";
+    str += "\n\nChoice- ";
     return str;
   }
   getItem(key: string) {

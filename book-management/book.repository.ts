@@ -30,7 +30,8 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
       book.publisher = data.publisher;
       book.totalNumOfCopies = data.totalNumOfCopies;
       book.genre = data.genre;
-      return book;
+      await this.db.save();
+      return this.getById(id);
     }
     return null;
   }
@@ -56,7 +57,7 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
             b.title.toLowerCase().includes(search) ||
             b.isbnNo.toLowerCase().includes(search)
         )
-      : this.books; 
+      : this.books;
     return {
       items: filteredBooks.slice(params.offset, params.offset + params.limit),
       pagination: {
@@ -65,5 +66,10 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
         total: filteredBooks.length,
       },
     };
+  }
+
+  async deleteAll() {
+    this.books.splice(0, this.books.length);
+    await this.db.save();
   }
 }

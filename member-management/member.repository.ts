@@ -18,9 +18,11 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
     const member = this.members.find((member) => member.id === id);
     if (member) {
       member.firstName = data.firstName;
-      member.lastName = member.lastName;
+      member.lastName = data.lastName;
       member.phoneNumber = data.phoneNumber;
       member.email = data.email;
+      await this.db.save();
+      console.table(member);
       return member;
     }
     return null;
@@ -47,7 +49,7 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
             m.lastName.toLowerCase().includes(search) ||
             m.email.toLowerCase().includes(search)
         )
-      : this.members; 
+      : this.members;
     return {
       items: filteredBooks.slice(params.offset, params.offset + params.limit),
       pagination: {

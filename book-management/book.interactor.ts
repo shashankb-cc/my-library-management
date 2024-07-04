@@ -1,5 +1,5 @@
 import { ZodError } from "zod";
-import { editableReadLine, readLine } from "../core/input.utils";
+import { readLine } from "../core/input.utils";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
 import { IPageRequest } from "../core/pagination";
@@ -78,9 +78,10 @@ async function getBookInput() {
 }
 
 async function getBookInputToUpdate(CurrentBook: IBook) {
-  await readLine(`Please Enter the Title  : `);
   const title =
-    (await editableReadLine(CurrentBook.title)) || CurrentBook.title;
+    (await readLine(`Please Enter the Title (${CurrentBook.title}) : `)) ||
+    CurrentBook.title;
+
   const author =
     (await readLine(`Please Enter the Author (${CurrentBook.author}) : `)) ||
     CurrentBook.author;
