@@ -7,7 +7,7 @@ export interface IMemberBase {
 }
 
 export interface IMember extends IMemberBase {
-  memberId: number;
+  id: number;
 }
 
 export const memberSchema = z.object({

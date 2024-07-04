@@ -59,9 +59,7 @@ async function addMember(repo: MemberRepository) {
       const member: IMemberBase = await getMemberInput();
       const validateMember = memberSchema.parse(member);
       const createdMember = await repo.create(validateMember);
-      console.log(
-        `Book added successfully!\nBook ID:${createdMember.memberId}`
-      );
+      console.log(`Book added successfully!\nBook ID:${createdMember.id}`);
       console.table(createdMember);
       break;
     } catch (error: unknown) {

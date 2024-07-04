@@ -39,7 +39,7 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
     const index = this.books.findIndex((book) => book.id === id);
     if (index === -1) return null;
     const deletedBook = this.books.splice(index, 1);
-    await this.db.save();
+    this.db.save();
     return deletedBook[0];
   }
 
@@ -56,7 +56,7 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
             b.title.toLowerCase().includes(search) ||
             b.isbnNo.toLowerCase().includes(search)
         )
-      : this.books; //.slice(params.offset, params.offset + params.limit);
+      : this.books; 
     return {
       items: filteredBooks.slice(params.offset, params.offset + params.limit),
       pagination: {

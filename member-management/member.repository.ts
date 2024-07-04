@@ -9,13 +9,13 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
     return this.db.table<IMember>("members");
   }
   async create(data: IMemberBase): Promise<IMember> {
-    const member = { ...data, memberId: this.members.length + 1 };
+    const member = { ...data, id: this.members.length + 1 };
     this.members.push(member);
     this.db.save();
     return member;
   }
   async update(id: number, data: IMemberBase): Promise<IMember | null> {
-    const member = this.members.find((member) => member.memberId === id);
+    const member = this.members.find((member) => member.id === id);
     if (member) {
       member.firstName = data.firstName;
       member.lastName = member.lastName;
@@ -26,15 +26,16 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
     return null;
   }
   async delete(id: number): Promise<IMember | null> {
-    const index = this.members.findIndex((member) => member.memberId === id);
+    const index = this.members.findIndex((member) => member.id === id);
     if (index !== -1) {
       const deletedMember = this.members.splice(index, 1);
+      this.db.save();
       return deletedMember[0];
     }
     return null;
   }
   async getById(id: number): Promise<IMember | null> {
-    const member = this.members.find((m) => m.memberId === id);
+    const member = this.members.find((member) => member.id === id);
     return member || null;
   }
   list(params: IPageRequest): IPagesResponse<IMember> {
@@ -46,7 +47,7 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
             m.lastName.toLowerCase().includes(search) ||
             m.email.toLowerCase().includes(search)
         )
-      : this.members; //.slice(params.offset, params.offset + params.limit);
+      : this.members; 
     return {
       items: filteredBooks.slice(params.offset, params.offset + params.limit),
       pagination: {
