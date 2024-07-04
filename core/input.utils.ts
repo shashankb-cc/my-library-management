@@ -29,3 +29,14 @@ export const readLine = (question: string): Promise<string> => {
     process.stdin.addListener("data", onData);
   });
 };
+
+export const editableReadLine = (str: string): Promise<string> => {
+  return new Promise((resolve) => {
+    const onData = async (key: Buffer) => {
+      process.stdin.removeListener("data", onData);
+      const input = key.toString("utf-8") + str;
+      resolve(input.trim());
+    };
+    process.stdin.addListener("data", onData);
+  });
+};

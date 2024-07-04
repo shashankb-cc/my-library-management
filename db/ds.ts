@@ -1,5 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
+import { IMember } from "../member-management/models/member.model";
+import { BookRepository } from "../book-management/book.repository";
+import { MemberRepository } from "../member-management/member.repository";
 
 export type ColumnData = string | number | boolean | null;
 export type Row = Record<string, ColumnData>;
