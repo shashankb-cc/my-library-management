@@ -90,23 +90,23 @@ async function getMemberInput() {
 }
 
 async function getUpdatedMemberInput(
-  CurrentMember: IMember
+  currentMember: IMember
 ): Promise<IMemberBase> {
   const firstName =
     (await readLine(
-      `Please Enter the first name (${CurrentMember.firstName}) : `
-    )) ?? CurrentMember.firstName;
+      `Please Enter the first name (${currentMember.firstName}) : `
+    )) || currentMember.firstName;
   const lastName =
     (await readLine(
-      `Please Enter the last name (${CurrentMember.lastName}) :`
-    )) ?? CurrentMember.lastName;
+      `Please Enter the last name (${currentMember.lastName}) :`
+    )) || currentMember.lastName;
   const email =
-    (await readLine(`Please Enter the email id (${CurrentMember.email}) :`)) ??
-    CurrentMember.email;
+    (await readLine(`Please Enter the email id (${currentMember.email}) :`)) ||
+    currentMember.email;
   const phoneNumber =
     (await readLine(
-      `Please Enter the Phone number: (${CurrentMember.phoneNumber})`
-    )) ?? CurrentMember.phoneNumber;
+      `Please Enter the Phone number: (${currentMember.phoneNumber})`
+    )) || currentMember.phoneNumber;
   return {
     firstName: firstName,
     lastName: lastName,
@@ -121,12 +121,11 @@ async function updateMember(repo: MemberRepository) {
     const memberId: number = +(await readLine("Please Enter the member ID:"));
     const currentMember: IMember | null = await repo.getById(memberId);
     if (!currentMember) {
-      await readLine("Please Enter valid Book Id");
+      await readLine("Please Enter valid Member Id");
     } else {
       loop = false;
       const member: IMemberBase = await getUpdatedMemberInput(currentMember);
-      const updatedMember = await repo.update(memberId, member);
-      console.table(updatedMember);
+      await repo.update(memberId, member);
     }
   }
 }
