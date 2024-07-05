@@ -40,7 +40,8 @@ describe("Member Repository Tests", () => {
   ];
 
   beforeAll(async () => {
-    await db.clear();
+    await memberRepository.deleteAll();
+
   });
 
   test("Create Member", async () => {
@@ -70,7 +71,8 @@ describe("Member Repository Tests", () => {
   });
 
   test("Get a list of added members", async () => {
-    await db.clear();
+    await memberRepository.deleteAll();
+
     const newMember1 = await memberRepository.create(members[0]);
     const newMember2 = await memberRepository.create(members[1]);
     const newMember3 = await memberRepository.create(members[2]);
@@ -94,7 +96,8 @@ describe("Member Repository Tests", () => {
   });
 
   test("Delete a member from the list", async () => {
-    await db.clear();
+    await memberRepository.deleteAll();
+
     const newMember1 = await memberRepository.create(members[0]);
     const newMember2 = await memberRepository.create(members[1]);
     await memberRepository.delete(newMember1.id);
