@@ -1,12 +1,13 @@
 import { IPageRequest, IPagesResponse } from "../core/pagination";
 import { IRepository } from "../core/repository";
 import { Database } from "../db/ds";
+import { LibraryDataset } from "../db/library-dataset";
 import { IBook, IBookBase } from "./models/books.model";
 
 export class BookRepository implements IRepository<IBookBase, IBook> {
-  constructor(private db: Database) {}
+  constructor(private db: Database<LibraryDataset>) {}
   private get books(): IBook[] {
-    return this.db.table<IBook>("books");
+    return this.db.table("books");
   }
   async create(data: IBookBase): Promise<IBook> {
     const book: IBook = {
@@ -69,7 +70,7 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
   }
 
   async deleteAll() {
-    this.books.splice(0, this.books.length);
+    this.books.length = 0; 
     await this.db.save();
   }
 }
