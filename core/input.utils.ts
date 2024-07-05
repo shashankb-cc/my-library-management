@@ -1,3 +1,5 @@
+import { EOL } from "node:os";
+import { resolve } from "node:path";
 import { emitKeypressEvents } from "node:readline";
 export const readChar = (question: string): Promise<string> => {
   process.stdin.write(question);
@@ -18,25 +20,97 @@ export const readChar = (question: string): Promise<string> => {
   });
 };
 
-export const readLine = (question: string): Promise<string> => {
+// export const readLine = (question: string): Promise<string> => {
+//   return new Promise((resolve) => {
+//     process.stdout.write(question);
+//     const onData = async (key: Buffer) => {
+//       process.stdin.removeListener("data", onData);
+//       const input = key.toString("utf-8");
+//       resolve(input.trim());
+//     };
+//     process.stdin.addListener("data", onData);
+//   });
+// };
+
+export function readLine<T>(
+  question: string,
+  parser: (rawInput: string) => T
+): Promise<T> {
   return new Promise((resolve) => {
     process.stdout.write(question);
-    const onData = async (key: Buffer) => {
+    const resolveValue = (value: T) => {
       process.stdin.removeListener("data", onData);
-      const input = key.toString("utf-8");
-      resolve(input.trim());
+      resolve(value);
     };
-    process.stdin.addListener("data", onData);
-  });
-};
 
-export const editableReadLine = (str: string): Promise<string> => {
-  return new Promise((resolve) => {
     const onData = async (key: Buffer) => {
-      process.stdin.removeListener("data", onData);
-      const input = key.toString("utf-8") + str;
-      resolve(input.trim());
+      let input = key.toString("utf-8");
+      input = input.substring(0, input.length - EOL.length);
+      let parsed: T;
+      try {
+        parsed = parser(input);
+        resolveValue(parsed);
+      } catch (err) {
+        const error: Error = err as Error;
+        process.stdin.write(`\n\ninvalid input : ${error.message}\n\n`);
+        process.stdout.write(question);
+        return;
+      }
     };
     process.stdin.addListener("data", onData);
   });
-};
+}
+
+export function StringParser(
+  trimmed: boolean = true,
+  optional?: boolean,
+  isNull?: true
+) {
+  return (rawInput: string) => {
+    if (trimmed) {
+      rawInput = rawInput.trim();
+    }
+    if (optional === undefined) {
+      optional = false;
+    }
+    if (isNull) {
+      return null;
+    }
+    if (optional && rawInput.length === 0) {
+      return null;
+    }
+    if (rawInput.length === 0) {
+      throw new Error("Empty values are not accepted");
+    }
+    return rawInput.trim();
+  };
+}
+
+export function NumberParser(optional?: boolean) {
+  return (rawInput: string) => {
+    if (optional === undefined) {
+      optional = false;
+    }
+    if (optional && rawInput.trim().length === 0) {
+      return null;
+    }
+    const num = Number(rawInput);
+    if (isNaN(num) || rawInput.trim().length === 0) {
+      throw new Error("Input must be a valid number!");
+    }
+    return num;
+  };
+}
+
+export function BooleanParser() {
+  return (rawInput: string) => {
+    rawInput = rawInput.trim().toLowerCase();
+    if (["yes", "true", "1", "y"]) {
+      return true;
+    } else if (["no", "false", "0", "n"]) {
+      return false;
+    } else {
+      throw new Error("Input must be a valid boolean!");
+    }
+  };
+}

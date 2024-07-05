@@ -1,12 +1,13 @@
 import { IPageRequest, IPagesResponse } from "../core/pagination";
 import { IRepository } from "../core/repository";
 import { Database } from "../db/ds";
+import { LibraryDataset } from "../db/library-dataset";
 import { IMemberBase, IMember } from "./models/member.model";
 
 export class MemberRepository implements IRepository<IMemberBase, IMember> {
-  constructor(private db: Database) {}
+  constructor(private db: Database<LibraryDataset>) {}
   private get members(): IMember[] {
-    return this.db.table<IMember>("members");
+    return this.db.table("members");
   }
   async create(data: IMemberBase): Promise<IMember> {
     const member = { ...data, id: this.members.length + 1 };

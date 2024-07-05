@@ -1,4 +1,4 @@
-import { readLine } from "../core/input.utils";
+import { NumberParser, readLine, StringParser } from "../core/input.utils";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
 import { IMember, IMemberBase, memberSchema } from "./models/member.model";
@@ -8,6 +8,7 @@ import { ZodError } from "zod";
 import { Database } from "../db/ds";
 import { IPageRequest } from "../core/pagination";
 import { LibraryInteractor } from "../src/library.interactor";
+import { LibraryDataset } from "../db/library-dataset";
 
 const menu = new Menu("Member-Management", [
   { key: "1", label: "Add Member" },
@@ -21,7 +22,7 @@ const menu = new Menu("Member-Management", [
 export class MemberInteractor implements IInteractor {
   constructor(
     public libraryInteractor: LibraryInteractor,
-    private db: Database
+    private readonly db: Database<LibraryDataset>
   ) {}
   private repo = new MemberRepository(this.db);
   async showMenu(): Promise<void> {
@@ -76,64 +77,57 @@ async function addMember(repo: MemberRepository) {
   }
 }
 
-async function getMemberInput() {
-  const firstName = await readLine("Please Enter the first name:");
-  const lastName = await readLine("Please Enter the last name:");
-  const email = await readLine("Please Enter the email id:");
-  const phoneNumber = await readLine("Please Enter the Phone number:");
-  return {
-    firstName: firstName,
-    lastName: lastName,
-    email: email,
-    phoneNumber: phoneNumber,
-  };
-}
-
-async function getUpdatedMemberInput(
-  currentMember: IMember
-): Promise<IMemberBase> {
+async function getMemberInput(member?: IMember) {
   const firstName =
     (await readLine(
-      `Please Enter the first name (${currentMember.firstName}) : `
-    )) || currentMember.firstName;
+      `Please Enter the first name: ${member?.lastName ?? ""}`,
+      StringParser(true, !!member)
+    )) || member?.firstName;
   const lastName =
     (await readLine(
-      `Please Enter the last name (${currentMember.lastName}) :`
-    )) || currentMember.lastName;
+      `Please Enter the last name: ${member?.lastName ?? ""}`,
+      StringParser(true, !!member)
+    )) || member?.lastName;
   const email =
-    (await readLine(`Please Enter the email id (${currentMember.email}) :`)) ||
-    currentMember.email;
+    (await readLine(
+      `Please Enter the email id: ${member?.email ?? ""}`,
+      StringParser(true, !!member)
+    )) || member?.email;
   const phoneNumber =
     (await readLine(
-      `Please Enter the Phone number: (${currentMember.phoneNumber})`
-    )) || currentMember.phoneNumber;
+      `Please Enter the Phone number: ${member?.phoneNumber ?? ""}`,
+      StringParser(true, !!member)
+    )) || member?.phoneNumber;
   return {
-    firstName: firstName,
-    lastName: lastName,
-    email: email,
-    phoneNumber: phoneNumber,
+    firstName: firstName!,
+    lastName: lastName!,
+    email: email!,
+    phoneNumber: phoneNumber!,
   };
 }
 
 async function updateMember(repo: MemberRepository) {
   let loop = true;
   while (loop) {
-    const memberId: number = +(await readLine("Please Enter the member ID:"));
-    const currentMember: IMember | null = await repo.getById(memberId);
+    const memberId = await readLine(
+      "Please Enter the member ID:",
+      NumberParser()
+    );
+    const currentMember: IMember | null = await repo.getById(memberId!);
     if (!currentMember) {
-      await readLine("Please Enter valid Member Id");
+      await readLine("Please Enter valid Member Id", NumberParser());
     } else {
       loop = false;
-      const member: IMemberBase = await getUpdatedMemberInput(currentMember);
-      await repo.update(memberId, member);
+      const member: IMemberBase = await getMemberInput(currentMember);
+      await repo.update(memberId!, member);
     }
   }
 }
 
 async function searchMember(repo: MemberRepository): Promise<IMember | null> {
   while (true) {
-    const id = +(await readLine("Please Enter the Member Id:"));
-    const member = await repo.getById(id);
+    const id = await readLine("Please Enter the Member Id:", NumberParser());
+    const member = await repo.getById(id!);
     if (!member) {
       console.log("---------------------Note------------------------");
       console.log("\nNo Member found!!  Please Enter Valid Member ID!!!\n");
@@ -147,33 +141,39 @@ async function searchMember(repo: MemberRepository): Promise<IMember | null> {
 }
 
 async function listMember(repo: MemberRepository) {
-  const param = await readLine(
-    "\nPlease Enter the Search (You can search by ID, Name and Email):"
+  const param =
+    (await readLine(
+      "\nPlease Enter the Search (You can search by ID, Name and Email):",
+      StringParser(true, true)
+    )) || undefined;
+  const offset = await readLine(
+    "Please enter the search offset value (this determines where to start the search from, e.g., 0 for the beginning):",
+    NumberParser()
   );
-  const offset = +(await readLine(
-    "Please enter the search offset value (this determines where to start the search from, e.g., 0 for the beginning):"
-  ));
-  const limit = +(await readLine(
-    "Please enter the search limit value (this determines the number of results to return):"
-  ));
+  const limit = await readLine(
+    "Please enter the search limit value (this determines the number of results to return):",
+    NumberParser()
+  );
   const params: IPageRequest = {
     search: param,
-    offset,
-    limit,
+    offset: offset!,
+    limit: limit!,
   };
   const memberList = repo.list(params);
   console.table(memberList.items);
 }
 
 async function deleteMember(repo: MemberRepository) {
-  const id = +(await readLine("Please Enter the Member Id:"));
-  const member = await repo.getById(id);
+  const id = await readLine("Please Enter the Member Id:", NumberParser());
+  const member = await repo.getById(id!);
   if (!member) {
     console.log("---------------------Note------------------------");
-    console.log("\nNo Member found!!  Please Enter Valid Member ID!!!\n");
+    chalk.cyanBright(
+      console.log("\nNo Member found!!  Please Enter Valid Member ID!!!\n")
+    );
     console.log("--------------------------------------------------");
   } else {
-    await repo.delete(id);
+    await repo.delete(id!);
     console.log(`Book with a Id ${id} deleted successfully\n`);
   }
 }

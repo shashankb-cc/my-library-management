@@ -2,6 +2,7 @@ import { BookInteractor } from "../book-management/book.interactor";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
 import { Database } from "../db/ds";
+import { LibraryDataset } from "../db/library-dataset";
 import { MemberInteractor } from "../member-management/member.interactor";
 
 export class LibraryInteractor implements IInteractor {
@@ -11,19 +12,20 @@ export class LibraryInteractor implements IInteractor {
     { key: "3", label: "Transaction" },
     { key: "4", label: "exit" },
   ]);
-  constructor(private readonly db: Database) {}
+  constructor() {}
   async showMenu(): Promise<void> {
+    const database = new Database<LibraryDataset>("./data/library.json");
     let loop = true;
     while (loop) {
       const op = await this.menu.show();
       if (op) {
         switch (op?.key.toLocaleLowerCase()) {
           case "1":
-            const bookInteractor = new BookInteractor(this, this.db);
+            const bookInteractor = new BookInteractor(this, database);
             await bookInteractor.showMenu();
             break;
           case "2":
-            const memberInteractor = new MemberInteractor(this, this.db);
+            const memberInteractor = new MemberInteractor(this, database);
             await memberInteractor.showMenu();
             break;
 

@@ -1,12 +1,14 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, afterEach } from "vitest";
 import { BookRepository } from "./book.repository";
-import { IBook } from "./models/books.model";
 import { Database } from "../db/ds";
+import { bookSchema, IBook, IBookBase } from "./models/books.model";
+import { faker } from "@faker-js/faker";
+import { LibraryDataset } from "../db/library-dataset";
 
 describe("Book Repository Tests", () => {
-  const db = new Database("../data/books.json");
+  const db = new Database<LibraryDataset>("./data/library.json");
   const bookRepository = new BookRepository(db);
-  const books = [
+  let books = [
     {
       title: "To Kill a Mockingbird",
       author: "Harper Lee",
@@ -34,74 +36,85 @@ describe("Book Repository Tests", () => {
       numOfPages: 279,
       totalNumOfCopies: 10,
     },
-    {
-      title: "The Catcher in the Rye",
-      author: "J.D. Salinger",
-      publisher: "Little, Brown and Company",
-      genre: "Fiction",
-      isbnNo: "9780316769488",
-      numOfPages: 214,
-      totalNumOfCopies: 6,
-    },
-    {
-      title: "The Hobbit",
-      author: "J.R.R. Tolkien",
-      publisher: "George Allen & Unwin",
-      genre: "Fantasy",
-      isbnNo: "9780547928227",
-      numOfPages: 310,
-      totalNumOfCopies: 9,
-    },
-    {
-      title: "Moby Dick",
-      author: "Herman Melville",
-      publisher: "Harper & Brothers",
-      genre: "Adventure",
-      isbnNo: "9781503280786",
-      numOfPages: 635,
-      totalNumOfCopies: 4,
-    },
-    {
-      title: "War and Peace",
-      author: "Leo Tolstoy",
-      publisher: "The Russian Messenger",
-      genre: "Historical Fiction",
-      isbnNo: "9780199232765",
-      numOfPages: 1225,
-      totalNumOfCopies: 3,
-    },
-    {
-      title: "The Odyssey",
-      author: "Homer",
-      publisher: "Ancient Greece",
-      genre: "Epic",
-      isbnNo: "9780140268867",
-      numOfPages: 541,
-      totalNumOfCopies: 5,
-    },
-    {
-      title: "Crime and Punishment",
-      author: "Fyodor Dostoevsky",
-      publisher: "The Russian Messenger",
-      genre: "Philosophical Fiction",
-      isbnNo: "9780143058144",
-      numOfPages: 671,
-      totalNumOfCopies: 6,
-    },
-    {
-      title: "The Brothers Karamazov",
-      author: "Fyodor Dostoevsky",
-      publisher: "The Russian Messenger",
-      genre: "Philosophical Fiction",
-      isbnNo: "9780374528379",
-      numOfPages: 796,
-      totalNumOfCopies: 5,
-    },
   ];
-  beforeEach(() => {
-    books.forEach((book) => {
-      bookRepository.create(book);
-    });
+  const numBooks = 5;
+  const createdBooks: IBook[] = [];
+  beforeEach(async () => {
+    await bookRepository.deleteAll();
   });
-  test("Create Book", () => {});
+  afterEach(async () => {
+    await bookRepository.deleteAll();
+  });
+  test("Create 100 books ", async () => {
+    for (let i = 0; i < numBooks; i++) {
+      const book: IBookBase = {
+        title: faker.lorem.words(3),
+        author: faker.internet.userName(),
+        publisher: faker.company.name(),
+        genre: faker.lorem.words(),
+        isbnNo: faker.number
+          .int({ min: 1000000000000, max: 9999999999999 })
+          .toString(),
+        numOfPages: faker.number.int({ min: 100, max: 1000 }),
+        totalNumOfCopies: faker.number.int({ min: 1, max: 50 }),
+      };
+      const createdBook = await bookRepository.create(book);
+      createdBooks.push(createdBook);
+      expect(createdBook).toBeDefined();
+      expect(createdBook.title).toEqual(book.title);
+      expect(createdBook.author).toEqual(book.author);
+      expect(createdBook.publisher).toEqual(book.publisher);
+      expect(createdBook.genre).toEqual(book.genre);
+      expect(createdBook.isbnNo).toEqual(book.isbnNo);
+      expect(createdBook.numOfPages).toEqual(book.numOfPages);
+      expect(createdBook.totalNumOfCopies).toEqual(book.totalNumOfCopies);
+    }
+  });
+  test("Update the Book details", async () => {
+    const newBook = await bookRepository.create(books[0]);
+    expect(newBook).toBeDefined();
+    expect(newBook.title).toBe("To Kill a Mockingbird");
+    newBook.title = "To Save a Mockingbird";
+    const updatedBook = await bookRepository.update(newBook.id, newBook);
+    expect(updatedBook).toBeDefined();
+    expect(updatedBook?.title).toBe("To Save a Mockingbird");
+    await bookRepository.deleteAll();
+  });
+  test("Get book by its id", async () => {
+    const newBook = await bookRepository.create(books[0]);
+    const fetchedBook = await bookRepository.getById(newBook.id);
+    expect(fetchedBook?.id).toBe(newBook.id);
+  });
+  test("Get a list of added books", async () => {
+    const newBook1 = await bookRepository.create(books[0]);
+    const newBook2 = await bookRepository.create(books[1]);
+    const newBook3 = await bookRepository.create(books[2]);
+    const listOfBooks = bookRepository.list({ offset: 0, limit: 3 });
+    expect(listOfBooks.items).toEqual([
+      {
+        ...newBook1,
+        availableNumberOfCopies: newBook1.totalNumOfCopies,
+      },
+      {
+        ...newBook2,
+        availableNumberOfCopies: newBook2.totalNumOfCopies,
+      },
+      {
+        ...newBook3,
+        availableNumberOfCopies: newBook3.totalNumOfCopies,
+      },
+    ]);
+  });
+  test("Delete a book from the list", async () => {
+    const newBook1 = await bookRepository.create(books[0]);
+    const newBook2 = await bookRepository.create(books[1]);
+    await bookRepository.delete(newBook1.id);
+    const listOfBooks = await bookRepository.list({ offset: 0, limit: 3 });
+    expect(listOfBooks.items.length).toBe(1);
+    expect(listOfBooks.items[0].id).toBe(newBook2.id);
+  });
+  test("Delete all the books", async () => {
+    await bookRepository.deleteAll();
+    expect(bookRepository.list({ offset: 0, limit: 1 }).items.length).toBe(0);
+  });
 });
