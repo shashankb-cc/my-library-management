@@ -11,7 +11,7 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
   async create(data: IMemberBase): Promise<IMember> {
     const member = { ...data, id: this.members.length + 1 };
     this.members.push(member);
-    this.db.save();
+    await this.db.save();
     return member;
   }
   async update(id: number, data: IMemberBase): Promise<IMember | null> {
@@ -31,7 +31,7 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
     const index = this.members.findIndex((member) => member.id === id);
     if (index !== -1) {
       const deletedMember = this.members.splice(index, 1);
-      this.db.save();
+      await this.db.save();
       return deletedMember[0];
     }
     return null;
@@ -42,7 +42,7 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
   }
   list(params: IPageRequest): IPagesResponse<IMember> {
     const search = params.search?.toLocaleLowerCase();
-    const filteredBooks = search
+    const filteredMembers = search
       ? this.members.filter(
           (m) =>
             m.firstName.toLowerCase().includes(search) ||
@@ -51,12 +51,17 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
         )
       : this.members;
     return {
-      items: filteredBooks.slice(params.offset, params.offset + params.limit),
+      items: filteredMembers.slice(params.offset, params.offset + params.limit),
       pagination: {
         offset: params.offset,
         limit: params.limit,
-        total: filteredBooks.length,
+        total: filteredMembers.length,
       },
     };
+  }
+
+  async deleteAll() {
+    this.members.length = 0;
+    await this.db.save();
   }
 }
