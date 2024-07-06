@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { EOL } from "node:os";
 import { resolve } from "node:path";
 import { emitKeypressEvents } from "node:readline";
@@ -80,7 +81,7 @@ export function StringParser(
       return null;
     }
     if (rawInput.length === 0) {
-      throw new Error("Empty values are not accepted");
+      throw new Error(chalk.red("Empty values are not accepted"));
     }
     return rawInput.trim();
   };
@@ -96,7 +97,7 @@ export function NumberParser(optional?: boolean) {
     }
     const num = Number(rawInput);
     if (isNaN(num) || rawInput.trim().length === 0) {
-      throw new Error("Input must be a valid number!");
+      throw new Error(chalk.red("Input must be a valid number!"));
     }
     return num;
   };
@@ -110,7 +111,7 @@ export function BooleanParser() {
     } else if (["no", "false", "0", "n"]) {
       return false;
     } else {
-      throw new Error("Input must be a valid boolean!");
+      throw new Error(chalk.red("Input must be a valid boolean!"));
     }
   };
 }

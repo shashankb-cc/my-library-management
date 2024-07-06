@@ -4,6 +4,7 @@ import { Menu } from "../core/menu";
 import { Database } from "../db/ds";
 import { LibraryDataset } from "../db/library-dataset";
 import { MemberInteractor } from "../member-management/member.interactor";
+import { TransactionInteractor } from "../transaction-management/transaction.interactor";
 
 export class LibraryInteractor implements IInteractor {
   menu = new Menu("Library-Management", [
@@ -30,6 +31,11 @@ export class LibraryInteractor implements IInteractor {
             break;
 
           case "3":
+            const transactionInteractor = new TransactionInteractor(
+              this,
+              database
+            );
+            await transactionInteractor.showMenu();
             break;
 
           case "4":
