@@ -24,8 +24,7 @@ export async function viewCompleteList<T, U extends T>(
   totalCount: number,
   search?: string | null
 ) {
-  let currentPage: number;
-  currentPage = 0;
+  let currentPage: number = 0;
 
   if (offset) {
     currentPage = Math.floor(offset / limit);
@@ -40,10 +39,12 @@ export async function viewCompleteList<T, U extends T>(
     });
 
     if (result.items.length > 0) {
+      const totalPages =
+        limit % 2 === 0
+          ? Math.ceil(totalCount / limit)
+          : Math.ceil(totalCount / limit) - 1;
       console.log(
-        chalk.bold.cyan(
-          `\n\nPage: ${currentPage + 1} of ${Math.ceil(totalCount / limit)})`
-        )
+        chalk.bold.cyan(`\n\nPage: ${currentPage + 1} of ${totalPages})`)
       );
       printTableWithoutIndex<T>(result.items);
       const hasPreviousPage = currentPage > 0;

@@ -11,8 +11,8 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
   }
   async create(data: IBookBase): Promise<IBook> {
     const book: IBook = {
-      ...data,
       id: this.books.length + 1,
+      ...data,
       availableNumberOfCopies: data.totalNumOfCopies,
     };
 

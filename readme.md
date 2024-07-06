@@ -83,7 +83,18 @@ Member-Management
 
 ### Transaction Management
 
-Select 3 for Transaction Management. This menu includes options for managing transactions such as issuing and returning books (details of transaction options would need to be specified).
+Select 3 for Transaction Management. This menu includes options for managing transactions such as issuing and returning books.
+
+```
+Transaction-Management
+        1.      Issue Book
+        2.      Return Book
+        3.      Search Transaction
+        4.      List Transaction
+        5.      <Previous Transaction>
+
+Choice -
+```
 
 ### Exit
 

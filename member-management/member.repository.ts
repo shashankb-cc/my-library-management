@@ -10,7 +10,7 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
     return this.db.table("members");
   }
   async create(data: IMemberBase): Promise<IMember> {
-    const member = { ...data, id: this.members.length + 1 };
+    const member = { id: this.members.length + 1, ...data };
     this.members.push(member);
     await this.db.save();
     return member;

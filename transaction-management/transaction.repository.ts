@@ -23,8 +23,8 @@ export class TransactionRepository
     const dueDate = new Date(currentDate);
     dueDate.setDate(currentDate.getDate() + dueDays);
     const transaction: ITransaction = {
-      ...data,
       id: this.transactions.length + 1,
+      ...data,
       issueDate: formatDate(currentDate),
       dueDate: formatDate(dueDate),
       Status: "Issued",

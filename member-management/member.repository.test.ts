@@ -3,13 +3,14 @@ import { MemberRepository } from "./member.repository";
 import { Database } from "../db/ds";
 import { LibraryDataset } from "../db/library-dataset";
 import { faker } from "@faker-js/faker";
-import { rmSync } from "fs";
+import { rm } from "fs/promises";
+import { IMemberBase } from "./models/member.model";
 
 describe("Member Repository Tests", () => {
   const db = new Database<LibraryDataset>("./data/mock-library.json");
   const memberRepository = new MemberRepository(db);
 
-  const generateMembers = (count: number) => {
+  const generateMembers = (count: number): IMemberBase[] => {
     return Array.from({ length: count }, () => ({
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
@@ -17,15 +18,15 @@ describe("Member Repository Tests", () => {
       phoneNumber: faker.phone.number(),
     }));
   };
-  const members = generateMembers(100);
+  const members: IMemberBase[] = generateMembers(100);
 
   beforeEach(async () => {
     await memberRepository.deleteAll();
-    rmSync("./data/mock-library.json");
+    await rm("./data/mock-library.json");
   });
   afterEach(async () => {
     await memberRepository.deleteAll();
-    rmSync("./data/mock-library.json");
+    await rm("./data/mock-library.json");
   });
 
   test("Create Member", async () => {
@@ -87,7 +88,6 @@ describe("Member Repository Tests", () => {
   });
 
   test("Create 100 Members", async () => {
-    await memberRepository.deleteAll();
     const newMembers = await Promise.all(
       members.map((member) => memberRepository.create(member))
     );
