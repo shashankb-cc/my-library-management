@@ -1,10 +1,11 @@
 import { describe, expect, test, beforeAll } from "vitest";
 import { MemberRepository } from "./member.repository";
 import { Database } from "../db/ds";
+import { LibraryDataset } from "../db/library-dataset";
 import { faker } from "@faker-js/faker";
 
 describe("Member Repository Tests", () => {
-  const db: Database = new Database("./data/mock-library.json");
+  const db: Database<LibraryDataset> = new Database("./data/mock-library.json");
   const memberRepository = new MemberRepository(db);
   const members = [
     {
@@ -41,7 +42,6 @@ describe("Member Repository Tests", () => {
 
   beforeAll(async () => {
     await memberRepository.deleteAll();
-
   });
 
   test("Create Member", async () => {
