@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "ts-node index.ts",
+    "start": "ts-node src/library.ts",
     "test": "vitest"
   },
   "devDependencies": {

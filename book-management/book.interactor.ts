@@ -1,5 +1,10 @@
-import { optional, ZodError } from "zod";
-import { NumberParser, readLine, StringParser } from "../core/input.utils";
+import { number, optional, ZodError } from "zod";
+import {
+  NumberParser,
+  readChar,
+  readLine,
+  StringParser,
+} from "../core/input.utils";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
 import { IPageRequest } from "../core/pagination";
@@ -9,6 +14,7 @@ import { IBook, IBookBase, bookSchema } from "./models/books.model";
 import chalk from "chalk";
 import { LibraryInteractor } from "../src/library.interactor";
 import { LibraryDataset } from "../db/library-dataset";
+import { Console } from "console";
 
 export class BookInteractor implements IInteractor {
   menu = new Menu("Book-Management", [
@@ -39,7 +45,7 @@ export class BookInteractor implements IInteractor {
             await searchBook(this.repo);
             break;
           case "4":
-            await listBooks(this.repo);
+            await viewCompleteList(this.repo);
             break;
           case "5":
             await deleteBook(this.repo);
@@ -169,27 +175,6 @@ async function searchBook(repo: BookRepository): Promise<IBook | null> {
   }
 }
 
-async function listBooks(repo: BookRepository) {
-  const param = await readLine(
-    "\nPlease Enter the Search (You can search by ISBN and Title):",
-    StringParser(true, true)
-  );
-  const offset = await readLine(
-    "Please enter the search offset value (this determines where to start the search from, e.g., 0 for the beginning):",
-    NumberParser(true)
-  );
-  const limit = await readLine(
-    "Please enter the search limit value (this determines the number of results to return):",
-    NumberParser(true)
-  );
-  const params: IPageRequest = {
-    search: param!,
-    offset: offset!,
-    limit: limit!,
-  };
-  const booksList = repo.list(params);
-  console.table(booksList.items);
-}
 async function deleteBook(repo: BookRepository) {
   const id = await readLine("Please Enter the Book Id:", NumberParser());
   const book = await repo.getById(id!);
@@ -201,4 +186,110 @@ async function deleteBook(repo: BookRepository) {
     repo.delete(id!);
     console.log(`Book with a Id ${id} deleted successfully\n`);
   }
+}
+async function viewCompleteList(repo: BookRepository) {
+  let currentPage: number;
+  const search = await readLine(
+    "\nPlease Enter the Search Text (You can search by title or ISBN number ):",
+    StringParser(true, true)
+  );
+  const offset =
+    (await readLine(
+      "Please enter the search offset value (this determines where to start the search from, e.g., 1 for the beginning):",
+      NumberParser(true)
+    ))! || 0;
+  const limit =
+    (await readLine(
+      "Please enter the search limit value (this determines the number of results to return):",
+      NumberParser(true)
+    ))! || 10;
+  currentPage = 0;
+  if (offset) {
+    currentPage = Math.floor(offset / limit);
+  }
+
+  const loadData = async () => {
+    const validateOffset = currentPage * limit + (offset % limit) - 1;
+    const result = await repo.list({
+      search: search || undefined,
+      offset: validateOffset > 0 ? validateOffset : 0,
+      limit: limit,
+    });
+
+    if (result.items.length > 0) {
+      console.log(`\n\nPage: ${currentPage + 1}`);
+      // console.table(result.items);
+      printTableWithoutIndex(result.items);
+      const hasPreviousPage = currentPage > 0;
+      const hasNextPage =
+        result.pagination.limit + result.pagination.offset <
+        result.pagination.total;
+      if (hasPreviousPage) {
+        console.log(`p\tPrevious Page`);
+      }
+      if (hasNextPage) {
+        console.log(`n\tNext Page`);
+      }
+      if (hasPreviousPage || hasNextPage) {
+        console.log(`q\tExit List`);
+        const askChoice = async () => {
+          const op = await readChar("\nChoice - ");
+          console.log(op, "\n\n");
+          if (op === "p" && hasPreviousPage) {
+            currentPage--;
+            await loadData();
+          } else if (op === "n" && hasNextPage) {
+            currentPage++;
+            await loadData();
+          } else if (op !== "q") {
+            console.log("---", op, "---");
+            console.log("\n\nInvalid input");
+            await askChoice();
+          }
+        };
+        await askChoice();
+      }
+    } else {
+      console.log("\n\nNo data to show\n");
+    }
+  };
+  await loadData();
+}
+function printTableWithoutIndex(data: IBook[]): void {
+  const maxLengths: { [key: string]: number } = {};
+  data.forEach((book) => {
+    for (const key in book) {
+      if (book.hasOwnProperty(key)) {
+        const keyLength = String(key).length;
+        const valueLength = String(book[key as keyof IBook]).length;
+        const lengthToBePrinted = Math.max(keyLength, valueLength);
+
+        if (!maxLengths[key] || lengthToBePrinted > maxLengths[key]) {
+          maxLengths[key] = lengthToBePrinted;
+        }
+      }
+    }
+  });
+  const headers = Object.keys(maxLengths);
+  const divider = headers
+    .map((header) => "-".repeat(maxLengths[header]))
+    .join(" - ");
+  console.log(divider);
+  console.log(
+    headers.map((header) => header.padEnd(maxLengths[header])).join(" | ")
+  );
+  console.log(divider);
+  function printRow(book: IBook): void {
+    console.log(
+      headers
+        .map((header) =>
+          String(book[header as keyof IBook]).padEnd(maxLengths[header])
+        )
+        .join(" | ")
+    );
+  }
+  data.forEach((book) => {
+    printRow(book);
+  });
+  console.log(divider);
 }
