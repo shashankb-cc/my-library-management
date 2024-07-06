@@ -31,7 +31,7 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
       book.publisher = data.publisher;
       book.totalNumOfCopies = data.totalNumOfCopies;
       book.genre = data.genre;
-      await this.db.save();
+      this.db.save();
       return this.getById(id);
     }
     return null;

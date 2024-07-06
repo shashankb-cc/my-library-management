@@ -23,8 +23,7 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
       member.phoneNumber = data.phoneNumber;
       member.email = data.email;
       await this.db.save();
-      console.table(member);
-      return member;
+      return this.getById(id);
     }
     return null;
   }

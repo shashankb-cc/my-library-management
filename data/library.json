@@ -1,1 +1,729 @@
-{"books":[],"members":[{"firstName":"Akshay","lastName":"BHat","email":"akshaybhat@gmail.com","phoneNumber":"9087654321","id":1}],"transactions":[{"bookId":1,"memberId":1,"id":1,"issueDate":"2024-07-06T09:44:03.719Z","dueDate":"2024-07-13T09:44:03.719Z","isBookReturned":true},{"bookId":2,"memberId":1,"id":2,"issueDate":"2024-07-06T09:46:40.741Z","dueDate":"2024-07-13T09:46:40.741Z","isBookReturned":true},{"bookId":3,"memberId":1,"id":3,"issueDate":"2024-07-06T09:48:30.776Z","dueDate":"2024-07-13T09:48:30.776Z","isBookReturned":true},{"bookId":1,"memberId":1,"id":4,"issueDate":"2024-07-06T10:19:49.209Z","dueDate":"2024-07-13T10:19:49.209Z","isBookReturned":true},{"bookId":3,"memberId":1,"id":5,"issueDate":"2024-07-06T10:32:32.809Z","dueDate":"2024-07-13T10:32:32.809Z","isBookReturned":false}]}
+{
+  "books": [
+    {
+      "title": "1984",
+      "author": "George Orwell",
+      "publisher": "Secker & Warburg",
+      "genre": "Dystopian",
+      "isbnNo": "9780451524935",
+      "numOfPages": 328,
+      "totalNumOfCopies": 8,
+      "id": 1,
+      "availableNumberOfCopies": 8
+    },
+    {
+      "title": "To Kill a Mockingbird",
+      "author": "Harper Lee",
+      "publisher": "J. B. Lippincott & Co.",
+      "genre": "Classic",
+      "isbnNo": "9780061120084",
+      "numOfPages": 281,
+      "totalNumOfCopies": 10,
+      "id": 2,
+      "availableNumberOfCopies": 10
+    },
+    {
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "publisher": "Charles Scribner's Sons",
+      "genre": "Classic",
+      "isbnNo": "9780743273565",
+      "numOfPages": 180,
+      "totalNumOfCopies": 6,
+      "id": 3,
+      "availableNumberOfCopies": 6
+    },
+    {
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "publisher": "T. Egerton, Whitehall",
+      "genre": "Classic",
+      "isbnNo": "9780141439518",
+      "numOfPages": 279,
+      "totalNumOfCopies": 7,
+      "id": 4,
+      "availableNumberOfCopies": 7
+    },
+    {
+      "title": "Harry Potter and the Philosopher's Stone",
+      "author": "J.K. Rowling",
+      "publisher": "Bloomsbury Publishing",
+      "genre": "Fantasy",
+      "isbnNo": "9780747532743",
+      "numOfPages": 223,
+      "totalNumOfCopies": 12,
+      "id": 5,
+      "availableNumberOfCopies": 12
+    },
+    {
+      "title": "The Catcher in the Rye",
+      "author": "J.D. Salinger",
+      "publisher": "Little, Brown and Company",
+      "genre": "Literary Fiction",
+      "isbnNo": "9780316769488",
+      "numOfPages": 224,
+      "totalNumOfCopies": 9,
+      "id": 6,
+      "availableNumberOfCopies": 9
+    },
+    {
+      "title": "The Hobbit",
+      "author": "J.R.R. Tolkien",
+      "publisher": "Allen & Unwin",
+      "genre": "Fantasy",
+      "isbnNo": "9780261103283",
+      "numOfPages": 310,
+      "totalNumOfCopies": 5,
+      "id": 7,
+      "availableNumberOfCopies": 5
+    },
+    {
+      "title": "Lord of the Flies",
+      "author": "William Golding",
+      "publisher": "Faber and Faber",
+      "genre": "Allegorical novel",
+      "isbnNo": "9780571056866",
+      "numOfPages": 224,
+      "totalNumOfCopies": 4,
+      "id": 8,
+      "availableNumberOfCopies": 4
+    },
+    {
+      "title": "The Road",
+      "author": "Cormac McCarthy",
+      "publisher": "Alfred A. Knopf",
+      "genre": "Post-apocalyptic fiction",
+      "isbnNo": "9780307387899",
+      "numOfPages": 287,
+      "totalNumOfCopies": 3,
+      "id": 9,
+      "availableNumberOfCopies": 3
+    },
+    {
+      "title": "1984",
+      "author": "George Orwell",
+      "publisher": "Secker & Warburg",
+      "genre": "Dystopian",
+      "isbnNo": "9780451524935",
+      "numOfPages": 328,
+      "totalNumOfCopies": 8,
+      "id": 10,
+      "availableNumberOfCopies": 8
+    },
+    {
+      "title": "To Kill a Mockingbird",
+      "author": "Harper Lee",
+      "publisher": "J. B. Lippincott & Co.",
+      "genre": "Classic",
+      "isbnNo": "9780061120084",
+      "numOfPages": 281,
+      "totalNumOfCopies": 10,
+      "id": 11,
+      "availableNumberOfCopies": 10
+    },
+    {
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "publisher": "Charles Scribner's Sons",
+      "genre": "Classic",
+      "isbnNo": "9780743273565",
+      "numOfPages": 180,
+      "totalNumOfCopies": 6,
+      "id": 12,
+      "availableNumberOfCopies": 6
+    },
+    {
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "publisher": "T. Egerton, Whitehall",
+      "genre": "Classic",
+      "isbnNo": "9780141439518",
+      "numOfPages": 279,
+      "totalNumOfCopies": 7,
+      "id": 13,
+      "availableNumberOfCopies": 7
+    },
+    {
+      "title": "Harry Potter and the Philosopher's Stone",
+      "author": "J.K. Rowling",
+      "publisher": "Bloomsbury Publishing",
+      "genre": "Fantasy",
+      "isbnNo": "9780747532743",
+      "numOfPages": 223,
+      "totalNumOfCopies": 12,
+      "id": 14,
+      "availableNumberOfCopies": 12
+    },
+    {
+      "title": "The Catcher in the Rye",
+      "author": "J.D. Salinger",
+      "publisher": "Little, Brown and Company",
+      "genre": "Literary Fiction",
+      "isbnNo": "9780316769488",
+      "numOfPages": 224,
+      "totalNumOfCopies": 9,
+      "id": 15,
+      "availableNumberOfCopies": 9
+    },
+    {
+      "title": "The Hobbit",
+      "author": "J.R.R. Tolkien",
+      "publisher": "Allen & Unwin",
+      "genre": "Fantasy",
+      "isbnNo": "9780261103283",
+      "numOfPages": 310,
+      "totalNumOfCopies": 5,
+      "id": 16,
+      "availableNumberOfCopies": 5
+    },
+    {
+      "title": "Lord of the Flies",
+      "author": "William Golding",
+      "publisher": "Faber and Faber",
+      "genre": "Allegorical novel",
+      "isbnNo": "9780571056866",
+      "numOfPages": 224,
+      "totalNumOfCopies": 4,
+      "id": 17,
+      "availableNumberOfCopies": 4
+    },
+    {
+      "title": "The Road",
+      "author": "Cormac McCarthy",
+      "publisher": "Alfred A. Knopf",
+      "genre": "Post-apocalyptic fiction",
+      "isbnNo": "9780307387899",
+      "numOfPages": 287,
+      "totalNumOfCopies": 3,
+      "id": 18,
+      "availableNumberOfCopies": 3
+    },
+    {
+      "title": "1984",
+      "author": "George Orwell",
+      "publisher": "Secker & Warburg",
+      "genre": "Dystopian",
+      "isbnNo": "9780451524935",
+      "numOfPages": 328,
+      "totalNumOfCopies": 8,
+      "id": 19,
+      "availableNumberOfCopies": 8
+    },
+    {
+      "title": "To Kill a Mockingbird",
+      "author": "Harper Lee",
+      "publisher": "J. B. Lippincott & Co.",
+      "genre": "Classic",
+      "isbnNo": "9780061120084",
+      "numOfPages": 281,
+      "totalNumOfCopies": 10,
+      "id": 20,
+      "availableNumberOfCopies": 10
+    },
+    {
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "publisher": "Charles Scribner's Sons",
+      "genre": "Classic",
+      "isbnNo": "9780743273565",
+      "numOfPages": 180,
+      "totalNumOfCopies": 6,
+      "id": 21,
+      "availableNumberOfCopies": 6
+    },
+    {
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "publisher": "T. Egerton, Whitehall",
+      "genre": "Classic",
+      "isbnNo": "9780141439518",
+      "numOfPages": 279,
+      "totalNumOfCopies": 7,
+      "id": 22,
+      "availableNumberOfCopies": 7
+    },
+    {
+      "title": "Harry Potter and the Philosopher's Stone",
+      "author": "J.K. Rowling",
+      "publisher": "Bloomsbury Publishing",
+      "genre": "Fantasy",
+      "isbnNo": "9780747532743",
+      "numOfPages": 223,
+      "totalNumOfCopies": 12,
+      "id": 23,
+      "availableNumberOfCopies": 12
+    },
+    {
+      "title": "The Catcher in the Rye",
+      "author": "J.D. Salinger",
+      "publisher": "Little, Brown and Company",
+      "genre": "Literary Fiction",
+      "isbnNo": "9780316769488",
+      "numOfPages": 224,
+      "totalNumOfCopies": 9,
+      "id": 24,
+      "availableNumberOfCopies": 9
+    },
+    {
+      "title": "The Hobbit",
+      "author": "J.R.R. Tolkien",
+      "publisher": "Allen & Unwin",
+      "genre": "Fantasy",
+      "isbnNo": "9780261103283",
+      "numOfPages": 310,
+      "totalNumOfCopies": 5,
+      "id": 25,
+      "availableNumberOfCopies": 5
+    },
+    {
+      "title": "Lord of the Flies",
+      "author": "William Golding",
+      "publisher": "Faber and Faber",
+      "genre": "Allegorical novel",
+      "isbnNo": "9780571056866",
+      "numOfPages": 224,
+      "totalNumOfCopies": 4,
+      "id": 26,
+      "availableNumberOfCopies": 4
+    },
+    {
+      "title": "The Road",
+      "author": "Cormac McCarthy",
+      "publisher": "Alfred A. Knopf",
+      "genre": "Post-apocalyptic fiction",
+      "isbnNo": "9780307387899",
+      "numOfPages": 287,
+      "totalNumOfCopies": 3,
+      "id": 27,
+      "availableNumberOfCopies": 3
+    },
+    {
+      "title": "1984",
+      "author": "George Orwell",
+      "publisher": "Secker & Warburg",
+      "genre": "Dystopian",
+      "isbnNo": "9780451524935",
+      "numOfPages": 328,
+      "totalNumOfCopies": 8,
+      "id": 28,
+      "availableNumberOfCopies": 8
+    },
+    {
+      "title": "To Kill a Mockingbird",
+      "author": "Harper Lee",
+      "publisher": "J. B. Lippincott & Co.",
+      "genre": "Classic",
+      "isbnNo": "9780061120084",
+      "numOfPages": 281,
+      "totalNumOfCopies": 10,
+      "id": 29,
+      "availableNumberOfCopies": 10
+    },
+    {
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "publisher": "Charles Scribner's Sons",
+      "genre": "Classic",
+      "isbnNo": "9780743273565",
+      "numOfPages": 180,
+      "totalNumOfCopies": 6,
+      "id": 30,
+      "availableNumberOfCopies": 6
+    },
+    {
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "publisher": "T. Egerton, Whitehall",
+      "genre": "Classic",
+      "isbnNo": "9780141439518",
+      "numOfPages": 279,
+      "totalNumOfCopies": 7,
+      "id": 31,
+      "availableNumberOfCopies": 7
+    },
+    {
+      "title": "Harry Potter and the Philosopher's Stone",
+      "author": "J.K. Rowling",
+      "publisher": "Bloomsbury Publishing",
+      "genre": "Fantasy",
+      "isbnNo": "9780747532743",
+      "numOfPages": 223,
+      "totalNumOfCopies": 12,
+      "id": 32,
+      "availableNumberOfCopies": 12
+    },
+    {
+      "title": "The Catcher in the Rye",
+      "author": "J.D. Salinger",
+      "publisher": "Little, Brown and Company",
+      "genre": "Literary Fiction",
+      "isbnNo": "9780316769488",
+      "numOfPages": 224,
+      "totalNumOfCopies": 9,
+      "id": 33,
+      "availableNumberOfCopies": 9
+    },
+    {
+      "title": "The Hobbit",
+      "author": "J.R.R. Tolkien",
+      "publisher": "Allen & Unwin",
+      "genre": "Fantasy",
+      "isbnNo": "9780261103283",
+      "numOfPages": 310,
+      "totalNumOfCopies": 5,
+      "id": 34,
+      "availableNumberOfCopies": 5
+    },
+    {
+      "title": "Lord of the Flies",
+      "author": "William Golding",
+      "publisher": "Faber and Faber",
+      "genre": "Allegorical novel",
+      "isbnNo": "9780571056866",
+      "numOfPages": 224,
+      "totalNumOfCopies": 4,
+      "id": 35,
+      "availableNumberOfCopies": 4
+    },
+    {
+      "title": "The Road",
+      "author": "Cormac McCarthy",
+      "publisher": "Alfred A. Knopf",
+      "genre": "Post-apocalyptic fiction",
+      "isbnNo": "9780307387899",
+      "numOfPages": 287,
+      "totalNumOfCopies": 3,
+      "id": 36,
+      "availableNumberOfCopies": 3
+    },
+    {
+      "title": "1984",
+      "author": "George Orwell",
+      "publisher": "Secker & Warburg",
+      "genre": "Dystopian",
+      "isbnNo": "9780451524935",
+      "numOfPages": 328,
+      "totalNumOfCopies": 8,
+      "id": 37,
+      "availableNumberOfCopies": 8
+    },
+    {
+      "title": "To Kill a Mockingbird",
+      "author": "Harper Lee",
+      "publisher": "J. B. Lippincott & Co.",
+      "genre": "Classic",
+      "isbnNo": "9780061120084",
+      "numOfPages": 281,
+      "totalNumOfCopies": 10,
+      "id": 38,
+      "availableNumberOfCopies": 10
+    },
+    {
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "publisher": "Charles Scribner's Sons",
+      "genre": "Classic",
+      "isbnNo": "9780743273565",
+      "numOfPages": 180,
+      "totalNumOfCopies": 6,
+      "id": 39,
+      "availableNumberOfCopies": 6
+    }
+  ],
+  "members": [
+    {
+      "firstName": "Akshay",
+      "lastName": "BHat",
+      "email": "akshaybhat@gmail.com",
+      "phoneNumber": "9087654321",
+      "id": 1
+    },
+    {
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "johndoe@gmail.com",
+      "phoneNumber": "1234567890",
+      "id": 2
+    },
+    {
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "email": "janesmith@gmail.com",
+      "phoneNumber": "9876543210",
+      "id": 3
+    },
+    {
+      "firstName": "Michael",
+      "lastName": "Johnson",
+      "email": "michaeljohnson@gmail.com",
+      "phoneNumber": "4567890123",
+      "id": 4
+    },
+    {
+      "firstName": "Emily",
+      "lastName": "Brown",
+      "email": "emilybrown@gmail.com",
+      "phoneNumber": "5678901234",
+      "id": 5
+    },
+    {
+      "firstName": "David",
+      "lastName": "Wilson",
+      "email": "davidwilson@gmail.com",
+      "phoneNumber": "2345678901",
+      "id": 6
+    },
+    {
+      "firstName": "Sarah",
+      "lastName": "Miller",
+      "email": "sarahmiller@gmail.com",
+      "phoneNumber": "6789012345",
+      "id": 7
+    },
+    {
+      "firstName": "Matthew",
+      "lastName": "Garcia",
+      "email": "matthewgarcia@gmail.com",
+      "phoneNumber": "7890123456",
+      "id": 8
+    },
+    {
+      "firstName": "Emma",
+      "lastName": "Martinez",
+      "email": "emmamartinez@gmail.com",
+      "phoneNumber": "3456789012",
+      "id": 9
+    },
+    {
+      "firstName": "Daniel",
+      "lastName": "Jones",
+      "email": "danieljones@gmail.com",
+      "phoneNumber": "8901234567",
+      "id": 10
+    },
+    {
+      "firstName": "Olivia",
+      "lastName": "Davis",
+      "email": "oliviadavis@gmail.com",
+      "phoneNumber": "0123456789",
+      "id": 11
+    },
+    {
+      "firstName": "James",
+      "lastName": "Rodriguez",
+      "email": "jamesrodriguez@gmail.com",
+      "phoneNumber": "9012345678",
+      "id": 12
+    },
+    {
+      "firstName": "Isabella",
+      "lastName": "Hernandez",
+      "email": "isabellahernandez@gmail.com",
+      "phoneNumber": "5432109876",
+      "id": 13
+    },
+    {
+      "firstName": "William",
+      "lastName": "Lopez",
+      "email": "williamlopez@gmail.com",
+      "phoneNumber": "4321098765",
+      "id": 14
+    },
+    {
+      "firstName": "Sophia",
+      "lastName": "Gonzalez",
+      "email": "sophiagonzalez@gmail.com",
+      "phoneNumber": "3210987654",
+      "id": 15
+    },
+    {
+      "firstName": "Alexander",
+      "lastName": "Perez",
+      "email": "alexanderperez@gmail.com",
+      "phoneNumber": "2109876543",
+      "id": 16
+    },
+    {
+      "firstName": "Mia",
+      "lastName": "Moore",
+      "email": "miamoore@gmail.com",
+      "phoneNumber": "1098765432",
+      "id": 17
+    },
+    {
+      "firstName": "Ethan",
+      "lastName": "Sanchez",
+      "email": "ethansanchez@gmail.com",
+      "phoneNumber": "0987654321",
+      "id": 18
+    },
+    {
+      "firstName": "Ava",
+      "lastName": "Clark",
+      "email": "avaclark@gmail.com",
+      "phoneNumber": "8765432109",
+      "id": 19
+    },
+    {
+      "firstName": "Michael",
+      "lastName": "Gutierrez",
+      "email": "michaelgutierrez@gmail.com",
+      "phoneNumber": "7654321098",
+      "id": 20
+    },
+    {
+      "firstName": "Emily",
+      "lastName": "Lewis",
+      "email": "emilylewis@gmail.com",
+      "phoneNumber": "6543210987",
+      "id": 21
+    },
+    {
+      "firstName": "Matthew",
+      "lastName": "Green",
+      "email": "matthewgreen@gmail.com",
+      "phoneNumber": "5432109876",
+      "id": 22
+    },
+    {
+      "firstName": "Emma",
+      "lastName": "Taylor",
+      "email": "emmataylor@gmail.com",
+      "phoneNumber": "4321098765",
+      "id": 23
+    },
+    {
+      "firstName": "Daniel",
+      "lastName": "Lee",
+      "email": "daniellee@gmail.com",
+      "phoneNumber": "3210987654",
+      "id": 24
+    },
+    {
+      "firstName": "Olivia",
+      "lastName": "Walker",
+      "email": "oliviawalker@gmail.com",
+      "phoneNumber": "2109876543",
+      "id": 25
+    },
+    {
+      "firstName": "James",
+      "lastName": "Hall",
+      "email": "jameshall@gmail.com",
+      "phoneNumber": "1098765432",
+      "id": 26
+    },
+    {
+      "firstName": "Isabella",
+      "lastName": "Young",
+      "email": "isabellayoung@gmail.com",
+      "phoneNumber": "0987654321",
+      "id": 27
+    },
+    {
+      "firstName": "William",
+      "lastName": "Allen",
+      "email": "williamallen@gmail.com",
+      "phoneNumber": "8765432109",
+      "id": 28
+    },
+    {
+      "firstName": "Sophia",
+      "lastName": "Wright",
+      "email": "sophiawright@gmail.com",
+      "phoneNumber": "7654321098",
+      "id": 29
+    },
+    {
+      "firstName": "Alexander",
+      "lastName": "King",
+      "email": "alexanderking@gmail.com",
+      "phoneNumber": "6543210987",
+      "id": 30
+    },
+    {
+      "firstName": "Mia",
+      "lastName": "Scott",
+      "email": "miascott@gmail.com",
+      "phoneNumber": "5432109876",
+      "id": 31
+    },
+    {
+      "firstName": "Ethan",
+      "lastName": "Baker",
+      "email": "ethanbaker@gmail.com",
+      "phoneNumber": "4321098765",
+      "id": 32
+    },
+    {
+      "firstName": "Ava",
+      "lastName": "Nguyen",
+      "email": "avanguyen@gmail.com",
+      "phoneNumber": "3210987654",
+      "id": 33
+    },
+    {
+      "firstName": "Michael",
+      "lastName": "Hill",
+      "email": "michaelhill@gmail.com",
+      "phoneNumber": "2109876543",
+      "id": 34
+    },
+    {
+      "firstName": "Emily",
+      "lastName": "Rivera",
+      "email": "emilyrivera@gmail.com",
+      "phoneNumber": "1098765432",
+      "id": 35
+    },
+    {
+      "firstName": "Matthew",
+      "lastName": "Alvarez",
+      "email": "matthewalvarez@gmail.com",
+      "phoneNumber": "0987654321",
+      "id": 36
+    },
+    {
+      "firstName": "Emma",
+      "lastName": "Gordon",
+      "email": "emmagordon@gmail.com",
+      "phoneNumber": "8765432109",
+      "id": 37
+    },
+    {
+      "firstName": "Daniel",
+      "lastName": "Morrison",
+      "email": "danielmorrison@gmail.com",
+      "phoneNumber": "7654321098",
+      "id": 38
+    },
+    {
+      "firstName": "Olivia",
+      "lastName": "Ruiz",
+      "email": "oliviaruiz@gmail.com",
+      "phoneNumber": "6543210987",
+      "id": 39
+    },
+    {
+      "firstName": "James",
+      "lastName": "Kim",
+      "email": "jameskim@gmail.com",
+      "phoneNumber": "5432109876",
+      "id": 40
+    },
+    {
+      "firstName": "Isabella",
+      "lastName": "Lee",
+      "email": "isabellalee@gmail.com",
+      "phoneNumber": "4321098765",
+      "id": 41
+    },
+    {
+      "firstName": "William",
+      "lastName": "Singh",
+      "email": "williamsingh@gmail.com",
+      "phoneNumber": "3210987654",
+      "id": 42
+    }
+  ]
+}
