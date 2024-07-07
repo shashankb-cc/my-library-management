@@ -20,8 +20,8 @@ const menu = new Menu("Member-Management", [
   { key: "2", label: "Edit Member" },
   { key: "3", label: "Search Member" },
   { key: "4", label: "List Members" },
-  { key: "6", label: "Delete Member" },
-  { key: "7", label: chalk.yellow("<Previous Menu>") },
+  { key: "5", label: "Delete Member" },
+  { key: "6", label: chalk.yellow("<Previous Menu>") },
 ]);
 
 export class MemberInteractor implements IInteractor {
@@ -48,10 +48,10 @@ export class MemberInteractor implements IInteractor {
           case "4":
             await listOfMembers(this.repo);
             break;
-          case "6":
+          case "5":
             await deleteMember(this.repo);
             break;
-          case "7":
+          case "6":
             loop = false;
             await this.libraryInteractor.showMenu();
             break;

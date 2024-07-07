@@ -89,18 +89,34 @@ async function returnBook(repo: TransactionRepository) {
     )) as number;
     const transaction = await repo.getById(transactionId);
     if (transaction) {
-      if (transaction.Status === "Issued") {
-        transaction.Status = "Returned";
-        repo.update(transaction!.id);
-        console.log(
-          chalk.green(`Book returned successfully!\nBook ID:${transaction?.id}`)
-        );
-        break;
+      console.table(transaction);
+
+      const status = await readConfirmation(
+        `If the Transaction is correct then enter ${chalk.bold.yellow("Y/y or Enter ↩ ")}, else ${chalk.bold.yellow("(N/n)")} to re-enter the Transaction ID: \n`
+      );
+
+      if (status) {
+        if (transaction.Status === "Issued") {
+          transaction.Status = "Returned";
+          repo.update(transaction.id);
+          console.log(
+            chalk.green(
+              `\n\nBook returned successfully!\nBook ID:${transaction?.id}\n`
+            )
+          );
+          break;
+        } else {
+          console.log(chalk.red("\nThis book is already returned.\n"));
+        }
       } else {
-        console.log(chalk.red("Books is already returned.\n"));
+        console.log(chalk.red("\n Please Re-enter valid ID.\n"));
       }
     } else {
-      console.log(chalk.red("No transactions found for the given ID.\n"));
+      console.log(
+        chalk.red(
+          "\nNo transactions found for the given ID. Please try again.\n"
+        )
+      );
     }
   }
 }
@@ -154,22 +170,47 @@ async function getTransactionInput(
         );
         break;
       } else {
-        console.log(chalk.red("\nInvalid Book ID. Please Enter valid Id.\n"));
+        console.log(chalk.red("\nPlease Re-enter the Book ID\n"));
       }
     } else {
       console.log(chalk.red("\nInvalid Book ID. Please try again.\n"));
     }
   }
 
+  // while (true) {
+  //   memberId = await readLine(
+  //     `\nPlease Enter the Member Id :`,
+  //     NumberParser(true)
+  //   );
+  //   if (memberId && (await memberRepo.getById(memberId))) {
+  //     break;
+  //   } else {
+  //     console.log(chalk.red("Invalid Member ID. Please try again."));
+  //   }
+  // }
   while (true) {
     memberId = await readLine(
       `\nPlease Enter the Member Id :`,
       NumberParser(true)
     );
-    if (memberId && (await memberRepo.getById(memberId))) {
-      break;
+    const member = await memberRepo.getById(memberId!);
+    if (memberId && member) {
+      console.table(member);
+      const status = await readConfirmation(
+        `\nIf the Member is correct then enter ${chalk.bold.yellow("Y/y or Enter ↩ ")}, else ${chalk.bold.yellow("(N/n)")} to re-enter the Member ID: \n`
+      );
+      if (status) {
+        console.log(
+          chalk.green(
+            `\n\nYou confirmed Member ID ${chalk.bold.white(memberId)}\n`
+          )
+        );
+        break;
+      } else {
+        console.log(chalk.red("\nPlease Re-enter the Your Member ID\n"));
+      }
     } else {
-      console.log(chalk.red("Invalid Member ID. Please try again."));
+      console.log(chalk.red("\nInvalid Member ID. Please try again.\n"));
     }
   }
   return {
