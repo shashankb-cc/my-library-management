@@ -3,83 +3,63 @@ import { MemberRepository } from "./member.repository";
 import { Database } from "../db/ds";
 import { LibraryDataset } from "../db/library-dataset";
 import { faker } from "@faker-js/faker";
+import { rmSync } from "fs";
 
 describe("Member Repository Tests", () => {
-  const db: Database<LibraryDataset> = new Database("./data/mock-library.json");
+  const db = new Database<LibraryDataset>("./data/mock-library.json");
   const memberRepository = new MemberRepository(db);
-  const members = [
-    {
-      firstName: "John",
-      lastName: "Doe",
-      email: "john.doe@example.com",
-      phoneNumber: "+1234567890",
-    },
-    {
-      firstName: "Jane",
-      lastName: "Smith",
-      email: "jane.smitgit stah@example.com",
-      phoneNumber: "+0987654321",
-    },
-    {
-      firstName: "Alice",
-      lastName: "Johnson",
-      email: "alice.johnson@example.com",
-      phoneNumber: "+1122334455",
-    },
-    {
-      firstName: "Bob",
-      lastName: "Williams",
-      email: "bob.williams@example.com",
-      phoneNumber: "+2233445566",
-    },
-    {
-      firstName: "Charlie",
-      lastName: "Brown",
-      email: "charlie.brown@example.com",
-      phoneNumber: "+3344556677",
-    },
-  ];
 
-  beforeAll(async () => {
+  const generateMembers = (count: number) => {
+    return Array.from({ length: count }, () => ({
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      email: faker.internet.email(),
+      phoneNumber: faker.phone.number(),
+    }));
+  };
+  const members = generateMembers(100);
+
+  beforeEach(async () => {
     await memberRepository.deleteAll();
+    rmSync("./data/mock-library.json");
+  });
+  afterEach(async () => {
+    await memberRepository.deleteAll();
+    rmSync("./data/mock-library.json");
   });
 
   test("Create Member", async () => {
-    const newmember = await memberRepository.create(members[0]);
-    expect(newmember).toBeDefined();
-    expect(newmember.firstName).toBe("John");
-    expect(newmember.lastName).toBe("Doe");
+    const newMember = await memberRepository.create(members[0]);
+    expect(newMember).toBeDefined();
+    expect(newMember.firstName).toBe(members[0].firstName);
+    expect(newMember.lastName).toBe(members[0].lastName);
   });
 
   test("Update the Member details", async () => {
-    const newmember = await memberRepository.create(members[1]);
-    expect(newmember).toBeDefined();
-    expect(newmember.firstName).toBe("Jane");
-    newmember.firstName = "test";
-    const updatedmember = await memberRepository.update(
-      newmember.id,
-      newmember
+    const newMember = await memberRepository.create(members[1]);
+    expect(newMember).toBeDefined();
+    expect(newMember.firstName).toBe(members[1].firstName);
+    newMember.firstName = "test";
+    const updatedMember = await memberRepository.update(
+      newMember.id,
+      newMember
     );
-    expect(updatedmember).toBeDefined();
-    expect(updatedmember?.firstName).toBe("test");
+    expect(updatedMember).toBeDefined();
+    expect(updatedMember?.firstName).toBe("test");
   });
 
   test("Get member by its id", async () => {
-    const newmember = await memberRepository.create(members[2]);
-    const fetchedmember = await memberRepository.getById(newmember.id);
-    expect(fetchedmember?.id).toBe(newmember.id);
+    const newMember = await memberRepository.create(members[2]);
+    const fetchedMember = await memberRepository.getById(newMember.id);
+    expect(fetchedMember?.id).toBe(newMember.id);
   });
 
   test("Get a list of added members", async () => {
-    await memberRepository.deleteAll();
-
     const newMember1 = await memberRepository.create(members[0]);
     const newMember2 = await memberRepository.create(members[1]);
     const newMember3 = await memberRepository.create(members[2]);
-    const listOfmembers = memberRepository.list({ offset: 0, limit: 3 });
-    console.log(listOfmembers.items);
-
-    expect(listOfmembers.items).toEqual([
+    const listOfMembers = memberRepository.list({ offset: 0, limit: 3 });
+    expect(listOfMembers.items).toEqual([
       {
         ...newMember1,
         email: newMember1.email,
@@ -101,8 +81,18 @@ describe("Member Repository Tests", () => {
     const newMember1 = await memberRepository.create(members[0]);
     const newMember2 = await memberRepository.create(members[1]);
     await memberRepository.delete(newMember1.id);
-    const listOfmembers = memberRepository.list({ offset: 0, limit: 3 });
-    expect(listOfmembers.items.length).toBe(1);
-    expect(listOfmembers.items[0].id).toBe(newMember2.id);
+    const listOfMembers = memberRepository.list({ offset: 0, limit: 3 });
+    expect(listOfMembers.items.length).toBe(1);
+    expect(listOfMembers.items[0].id).toBe(newMember2.id);
+  });
+
+  test("Create 100 Members", async () => {
+    await memberRepository.deleteAll();
+    const newMembers = await Promise.all(
+      members.map((member) => memberRepository.create(member))
+    );
+    const listOfMembers = memberRepository.list({ offset: 0, limit: 100 });
+    expect(listOfMembers.items.length).toBe(100);
+    expect(listOfMembers.items).toEqual(expect.arrayContaining(newMembers));
   });
 });

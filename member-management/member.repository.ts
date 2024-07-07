@@ -23,7 +23,7 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
       member.phoneNumber = data.phoneNumber;
       member.email = data.email;
       await this.db.save();
-      return this.getById(id);
+      return member;
     }
     return null;
   }
@@ -63,5 +63,9 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
   async deleteAll() {
     this.members.length = 0;
     await this.db.save();
+  }
+
+  getTotalCount() {
+    return this.members.length;
   }
 }

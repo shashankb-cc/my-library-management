@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { BookInteractor } from "../book-management/book.interactor";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
@@ -5,17 +6,20 @@ import { Database } from "../db/ds";
 import { LibraryDataset } from "../db/library-dataset";
 import { MemberInteractor } from "../member-management/member.interactor";
 import { TransactionInteractor } from "../transaction-management/transaction.interactor";
+import chalk from "chalk";
 
 export class LibraryInteractor implements IInteractor {
   menu = new Menu("Library-Management", [
     { key: "1", label: "Book Management" },
     { key: "2", label: "Member Management" },
     { key: "3", label: "Transaction" },
-    { key: "4", label: "exit" },
+    { key: "4", label: "Exit" },
   ]);
   constructor() {}
   async showMenu(): Promise<void> {
-    const database = new Database<LibraryDataset>("./data/library.json");
+    const database = new Database<LibraryDataset>(
+      join(__dirname, "../data/library.json")
+    );
     let loop = true;
     while (loop) {
       const op = await this.menu.show();
@@ -43,9 +47,9 @@ export class LibraryInteractor implements IInteractor {
             break;
         }
       } else {
-        console.log("-----------------");
-        console.log("| Invalid option |");
-        console.log("-----------------");
+        console.log(
+          chalk.bold.red("\nInvalid option, Please Enter valid option\n")
+        );
       }
     }
   }

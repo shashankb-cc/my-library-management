@@ -5,16 +5,9 @@ export interface ITransactionBase {
 
 export interface ITransaction extends ITransactionBase {
   id: number;
-  issueDate: Date;
-  dueDate: Date;
-  isBookReturned: boolean | null;
+  issueDate: string;
+  dueDate: string;
+  Status: TStatus;
 }
 
-export interface TransactionTableEntry {
-  Id: number;
-  BookID: number;
-  MemberID: number;
-  IssueDate: string;
-  DueDate: string;
-  Returned: string;
-}
+type TStatus = "Issued" | "Returned";

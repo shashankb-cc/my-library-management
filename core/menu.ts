@@ -16,14 +16,14 @@ export class Menu {
         if (str) {
           str += "\n\t";
         }
-        str += `${chalk.blue(item.key)}.\t${chalk.green(item.label)}`;
+        str += `${chalk.magenta(item.key)}.\t${chalk.bold.blue(item.label)}`;
         return str;
       },
-      `${chalk.bgCyan(this.title)}`
+      `${chalk.bold(this.title)}`
     );
 
-    str += "\n\nChoice- ";
-    return str;
+    str += "\n\nChoice - ";
+    return chalk.bold.white(str);
   }
   getItem(key: string) {
     return this.items.find((i) => i.key === key) || null;
@@ -33,7 +33,7 @@ export class Menu {
     const op = await readChar(this.serialize());
     const menuItem = this.getItem(op);
     if (menuItem) {
-      console.log(chalk.green(`${menuItem.key}\t${menuItem.label}`));
+      console.log(chalk.bold.green(`${menuItem.key}\t${menuItem.label}`));
       console.log("\n");
     } else {
       console.log(op);

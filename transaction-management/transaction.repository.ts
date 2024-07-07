@@ -1,4 +1,5 @@
 import { BookRepository } from "../book-management/book.repository";
+import { formatDate } from "../core/formatdate";
 import { IPageRequest, IPagesResponse } from "../core/pagination";
 import { IRepository } from "../core/repository";
 import { Database } from "../db/ds";
@@ -24,27 +25,24 @@ export class TransactionRepository
     const transaction: ITransaction = {
       ...data,
       id: this.transactions.length + 1,
-      issueDate: currentDate,
-      dueDate: dueDate,
-      isBookReturned: false,
+      issueDate: formatDate(currentDate),
+      dueDate: formatDate(dueDate),
+      Status: "Issued",
     };
     this.transactions.push(transaction);
     await this.db.save();
     return transaction;
   }
 
-  async update(
-    id: number,
-    data: ITransactionBase
-  ): Promise<ITransaction | null> {
+  async update(id: number): Promise<ITransaction | null> {
     const transaction = this.transactions.find(
       (transaction) => transaction.id === id
     );
     if (transaction) {
       const book = await this.bookRepo.getById(transaction.bookId);
-      if (transaction.isBookReturned && book) {
+      if (transaction.Status === "Returned" && book) {
         book.availableNumberOfCopies++;
-      } else if (!transaction.isBookReturned && book) {
+      } else if (transaction.Status === "Issued" && book) {
         book.availableNumberOfCopies--;
       }
       await this.db.save();
@@ -89,5 +87,9 @@ export class TransactionRepository
   async deleteAll() {
     this.transactions.length = 0;
     await this.db.save();
+  }
+
+  getTotalCount() {
+    return this.transactions.length;
   }
 }

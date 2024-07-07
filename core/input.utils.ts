@@ -1,6 +1,5 @@
 import chalk from "chalk";
 import { EOL } from "node:os";
-import { resolve } from "node:path";
 import { emitKeypressEvents } from "node:readline";
 export const readChar = (question: string): Promise<string> => {
   process.stdin.write(question);
@@ -21,24 +20,13 @@ export const readChar = (question: string): Promise<string> => {
   });
 };
 
-// export const readLine = (question: string): Promise<string> => {
-//   return new Promise((resolve) => {
-//     process.stdout.write(question);
-//     const onData = async (key: Buffer) => {
-//       process.stdin.removeListener("data", onData);
-//       const input = key.toString("utf-8");
-//       resolve(input.trim());
-//     };
-//     process.stdin.addListener("data", onData);
-//   });
-// };
-
 export function readLine<T>(
   question: string,
   parser: (rawInput: string) => T
 ): Promise<T> {
   return new Promise((resolve) => {
     process.stdout.write(question);
+
     const resolveValue = (value: T) => {
       process.stdin.removeListener("data", onData);
       resolve(value);

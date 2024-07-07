@@ -70,7 +70,11 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
   }
 
   async deleteAll() {
-    this.books.length = 0; 
+    this.books.length = 0;
     await this.db.save();
+  }
+
+  getTotalCount() {
+    return this.books.length;
   }
 }

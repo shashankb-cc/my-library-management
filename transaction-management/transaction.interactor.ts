@@ -9,17 +9,13 @@ import {
   readChar,
   readLine,
 } from "../core/input.utils";
-import {
-  ITransaction,
-  ITransactionBase,
-  TransactionTableEntry,
-} from "./models/transaction.model";
+import { ITransaction, ITransactionBase } from "./models/transaction.model";
 import { Menu } from "../core/menu";
 import { MemberRepository } from "../member-management/member.repository";
 import { BookRepository } from "../book-management/book.repository";
 import chalk from "chalk";
-import { IBook } from "../book-management/models/books.model";
-import { IPageRequest } from "../core/pagination";
+import { viewCompleteList } from "../core/pagination";
+import { EOL } from "os";
 
 export class TransactionInteractor implements IInteractor {
   menu = new Menu("\nTransaction-Management", [
@@ -45,7 +41,7 @@ export class TransactionInteractor implements IInteractor {
             await issueBook(this.repo, this.bookRepo, this.memberRepo);
             break;
           case "2":
-            await returnBook(this.repo, this.bookRepo, this.memberRepo);
+            await returnBook(this.repo);
             break;
           case "3":
             await searchTransaction(this.repo);
@@ -59,9 +55,9 @@ export class TransactionInteractor implements IInteractor {
             break;
         }
       } else {
-        console.log("-----------------");
-        console.log("| Invalid option |");
-        console.log("-----------------");
+        console.log(
+          chalk.bold.red("\nInvalid option, Please Enter valid option\n")
+        );
       }
     }
   }
@@ -76,19 +72,17 @@ async function issueBook(
     bookRepo,
     memberRepo
   );
-  const createdTransaction: ITransaction = await repo.create(transaction);
-  repo.update(createdTransaction.id, createdTransaction);
-  console.log(
-    `Transaction added successfully!\nBook ID:${createdTransaction.id}`
-  );
-  console.table([transactionToTableEntry(createdTransaction)]);
+  const transactionRecord: ITransaction = await repo.create(transaction);
+  const createdTransaction = await repo.update(transactionRecord.id);
+  if (!createdTransaction) {
+    console.log(chalk.bold.red("Error while Creating the transaction"));
+    return;
+  }
+  console.log(`Book issued successfully!\nBook ID:${createdTransaction.id}`);
+  console.table(createdTransaction);
 }
 
-async function returnBook(
-  repo: TransactionRepository,
-  bookRepo: BookRepository,
-  memberRepo: MemberRepository
-) {
+async function returnBook(repo: TransactionRepository) {
   while (true) {
     const transactionId = (await readLine(
       `Please Enter the Transaction Id :`,
@@ -96,17 +90,15 @@ async function returnBook(
     )) as number;
     const transaction = await repo.getById(transactionId);
     if (transaction) {
-      if (!transaction?.isBookReturned) {
-        transaction!.isBookReturned = true;
-        repo.update(transaction!.id, transaction!);
+      if (transaction.Status === "Issued") {
+        transaction.Status = "Returned";
+        repo.update(transaction!.id);
         console.log(
-          chalk.green(
-            `Transaction added successfully!\nBook ID:${transaction?.id}`
-          )
+          chalk.green(`Book returned successfully!\nBook ID:${transaction?.id}`)
         );
         break;
       } else {
-        console.log(chalk.red("This Transaction is already completed.\n"));
+        console.log(chalk.red("Books is already returned.\n"));
       }
     } else {
       console.log(chalk.red("No transactions found for the given ID.\n"));
@@ -116,13 +108,19 @@ async function returnBook(
 
 async function readConfirmation(message: string): Promise<boolean> {
   while (true) {
-    const input = await readChar(message);
-    if (input.toLowerCase() === "y") {
+    const input = (await readChar(message))
+      .toString()
+      .replace(/\r?\n|\r/g, "")
+      .toLowerCase()
+      .trim();
+    if (input === "y" || input === "") {
       return true;
-    } else if (input.toLowerCase() === "n") {
+    } else if (input === "n") {
       return false;
     } else {
-      console.log(chalk.red("Invalid input. Please enter 'Y' or 'N'."));
+      console.log(
+        chalk.red("Invalid input. Please enter 'Y' or Simply Press Enter'↩'.")
+      );
     }
   }
 }
@@ -133,9 +131,8 @@ async function getTransactionInput(
 ) {
   let bookId: number | null;
   let memberId: number | null;
-  let book: IBook;
   while (true) {
-    bookId = await readLine(`Please Enter the BookId :`, NumberParser(true));
+    bookId = await readLine(`Please Enter the BookId : `, NumberParser(true));
     const book = await bookRepo.getById(bookId!);
     if (book && bookId) {
       console.table(book);
@@ -148,10 +145,14 @@ async function getTransactionInput(
         continue;
       }
       const status = await readConfirmation(
-        "If the data is correct then enter (Y or y), else (N or n): \n"
+        `If the Book is correct then enter ${chalk.bold.yellow("Y/y or Enter ↩ ")}, else ${chalk.bold.yellow(" (N/n) ")}to re-enter the Book ID: \n`
       );
       if (status) {
-        console.log(chalk.green("\nData confirmed as correct.\n"));
+        console.log(
+          chalk.green(
+            `\nYour confirmed Book is ${chalk.bold.white(book.title)}\n`
+          )
+        );
         break;
       } else {
         console.log(chalk.red("\nInvalid Book ID. Please try again.\n"));
@@ -188,48 +189,39 @@ async function searchTransaction(
     );
     const transaction = await repo.getById(id!);
     if (!transaction) {
-      console.log("---------------------Note------------------------");
-      console.log("\nNo Member found!!  Please Enter Valid Member ID!!!\n");
-      console.log("-------------------------------------------------");
+      console.log(
+        chalk.bold.red("\nNo Member found!!  Please Enter Valid Member ID!!!\n")
+      );
       continue;
     } else {
-      console.table([transactionToTableEntry(transaction)]);
+      console.table(transaction);
       return transaction;
     }
   }
 }
 
 async function listTransaction(repo: TransactionRepository) {
-  const param = await readLine(
-    "\nPlease enter your search criteria (Member ID or Book ID):\n",
+  const search = await readLine(
+    "\nPlease enter your search  (Member ID or Book ID):\n",
     StringParser(true, true)
   );
-  const offset = await readLine(
-    "Please enter the search offset value (e.g., 0 to start from the beginning):\n",
-    NumberParser(true)
-  );
-  const limit = await readLine(
-    "\nPlease enter the search limit value (the number of results to return):\n",
-    NumberParser(true)
-  );
-  const params: IPageRequest = {
-    search: param!,
-    offset: offset!,
-    limit: limit!,
-  };
-  const TransactionList = repo.list(params);
-  console.table(TransactionList.items);
-}
+  const offset =
+    (await readLine(
+      "Please enter the search offset value (e.g., 0 to start from the beginning):\n",
+      NumberParser(true)
+    )) || 0;
+  const limit =
+    (await readLine(
+      "\nPlease enter the search limit value (the number of results to return):\n",
+      NumberParser(true)
+    )) || 10;
 
-export function transactionToTableEntry(
-  transaction: ITransaction
-): TransactionTableEntry {
-  return {
-    Id: transaction.id,
-    BookID: transaction.bookId,
-    MemberID: transaction.memberId,
-    IssueDate: transaction.issueDate.toISOString().split("T")[0],
-    DueDate: transaction.dueDate.toISOString().split("T")[0],
-    Returned: transaction.isBookReturned ? "Yes" : "No",
-  };
+  const totalTransaction = repo.getTotalCount();
+  await viewCompleteList<ITransactionBase, ITransaction>(
+    repo,
+    offset,
+    limit,
+    totalTransaction,
+    search
+  );
 }
