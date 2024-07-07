@@ -15,7 +15,6 @@ import { MemberRepository } from "../member-management/member.repository";
 import { BookRepository } from "../book-management/book.repository";
 import chalk from "chalk";
 import { viewCompleteList } from "../core/pagination";
-import { EOL } from "os";
 
 export class TransactionInteractor implements IInteractor {
   menu = new Menu("\nTransaction-Management", [
@@ -23,14 +22,14 @@ export class TransactionInteractor implements IInteractor {
     { key: "2", label: "Return Book " },
     { key: "3", label: "Search Transaction" },
     { key: "4", label: "List Transaction" },
-    { key: "5", label: "<Previous Transaction>" },
+    { key: "5", label: chalk.yellow("<Previous Menu>") },
   ]);
   constructor(
     public libraryInteractor: LibraryInteractor,
     private readonly db: Database<LibraryDataset>
   ) {}
-  bookRepo = new BookRepository(this.db);
-  memberRepo = new MemberRepository(this.db);
+  private bookRepo = new BookRepository(this.db);
+  private memberRepo = new MemberRepository(this.db);
   private repo = new TransactionRepository(this.db);
   async showMenu(): Promise<void> {
     while (true) {
@@ -150,15 +149,15 @@ async function getTransactionInput(
       if (status) {
         console.log(
           chalk.green(
-            `\nYour confirmed Book is ${chalk.bold.white(book.title)}\n`
+            `\n\nYour confirmed Book is ${chalk.bold.white(book.title.toUpperCase())}`
           )
         );
         break;
       } else {
-        console.log(chalk.red("\nInvalid Book ID. Please try again.\n"));
+        console.log(chalk.red("\nInvalid Book ID. Please Enter valid Id.\n"));
       }
     } else {
-      console.log(chalk.red("\nInvalid Member ID. Please try again.\n"));
+      console.log(chalk.red("\nInvalid Book ID. Please try again.\n"));
     }
   }
 
@@ -190,7 +189,9 @@ async function searchTransaction(
     const transaction = await repo.getById(id!);
     if (!transaction) {
       console.log(
-        chalk.bold.red("\nNo Member found!!  Please Enter Valid Member ID!!!\n")
+        chalk.bold.red(
+          "\nNo Transaction found!!  Please Enter Valid Transaction ID!!!\n"
+        )
       );
       continue;
     } else {

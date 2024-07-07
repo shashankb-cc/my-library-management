@@ -3,7 +3,7 @@ import { formatDate } from "./formatdate";
 
 describe("formatDate", () => {
   test("formats the date correctly", () => {
-    const date = new Date("2024-07-07T15:30:00Z");
+    const date = new Date("2024-07-07T15:30:00Z"); // ISO string in UTC
     const formattedDate = formatDate(date);
 
     expect(formattedDate).toBe("Sunday, 2024-07-07, 15:30:00");
@@ -24,11 +24,11 @@ describe("formatDate", () => {
   });
 
   test("handles time zones correctly", () => {
-    const date = new Date("2024-07-07T15:30:00+02:00"); // Date with timezone offset
+    const date = new Date("2024-07-07T13:30:00+02:00"); // Date with timezone offset
     const formattedDate = formatDate(date);
 
-    // Adjust the expected time based on the offset used in the test date
-    expect(formattedDate).toBe("Sunday, 2024-07-07, 13:30:00"); // Adjusted to UTC time
+    // Expected time in UTC
+    expect(formattedDate).toBe("Sunday, 2024-07-07, 11:30:00"); // Adjusted to UTC time
   });
 
   test("handles edge cases", () => {

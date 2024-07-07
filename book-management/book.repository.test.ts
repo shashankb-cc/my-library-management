@@ -4,7 +4,7 @@ import { Database } from "../db/ds";
 import { IBook, IBookBase } from "./models/books.model";
 import { faker } from "@faker-js/faker";
 import { LibraryDataset } from "../db/library-dataset";
-import { rmSync } from "fs";
+import { rm } from "fs/promises";
 
 describe("Book Repository Tests", () => {
   const db = new Database<LibraryDataset>("./data/mock-library.json");
@@ -27,11 +27,11 @@ describe("Book Repository Tests", () => {
   let books: IBookBase[] = generateBooks(100);
   beforeEach(async () => {
     await bookRepository.deleteAll();
-    rmSync("./data/mock-library.json");
+    await rm("./data/mock-library.json");
   });
   afterEach(async () => {
     await bookRepository.deleteAll();
-    rmSync("./data/mock-library.json");
+    await rm("./data/mock-library.json");
   });
   test("Create single book ", async () => {
     const createdBook: IBook = await bookRepository.create(books[0]);
