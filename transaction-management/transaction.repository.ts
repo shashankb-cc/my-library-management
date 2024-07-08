@@ -66,14 +66,20 @@ export class TransactionRepository
 
   list(params: IPageRequest): IPagesResponse<ITransaction> {
     const search = params.search;
+
+    function findExactMatch(ids: string[], search: string): boolean {
+      const regex = new RegExp(`^${search}$`, "i");
+      return ids.some((id) => regex.test(id));
+    }
+
     const filterTransactions = search
-      ? this.transactions.filter(
-          (transaction) =>
-            transaction.bookId.toString().includes(search) ||
-            transaction.memberId.toString().includes(search)
+      ? this.transactions.filter((transaction) =>
+          findExactMatch(
+            [transaction.bookId.toString(), transaction.memberId.toString()],
+            search
+          )
         )
       : this.transactions;
-
     return {
       items: filterTransactions.slice(
         params.offset,
@@ -93,5 +99,8 @@ export class TransactionRepository
 
   getTotalCount() {
     return this.transactions.length;
+  }
+  getAllTransaction() {
+    return this.transactions;
   }
 }

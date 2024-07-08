@@ -15,6 +15,7 @@ import { MemberRepository } from "../member-management/member.repository";
 import { BookRepository } from "../book-management/book.repository";
 import chalk from "chalk";
 import { viewCompleteList } from "../core/pagination";
+import { formatDate } from "../core/formatdate";
 
 export class TransactionInteractor implements IInteractor {
   menu = new Menu("\nTransaction-Management", [
@@ -22,7 +23,8 @@ export class TransactionInteractor implements IInteractor {
     { key: "2", label: "Return Book " },
     { key: "3", label: "Search Transaction" },
     { key: "4", label: "List Transaction" },
-    { key: "5", label: chalk.yellow("<Previous Menu>") },
+    { key: "5", label: "Todays Due List" },
+    { key: "6", label: chalk.yellow("<Previous Menu>") },
   ]);
   constructor(
     public libraryInteractor: LibraryInteractor,
@@ -49,6 +51,9 @@ export class TransactionInteractor implements IInteractor {
             await listTransaction(this.repo);
             break;
           case "5":
+            await todaysDueList(this.repo);
+            break;
+          case "6":
             await this.libraryInteractor.showMenu();
           default:
             break;
@@ -257,4 +262,21 @@ async function listTransaction(repo: TransactionRepository) {
     totalTransaction,
     search
   );
+}
+async function todaysDueList(repo: TransactionRepository) {
+  const today = new Date();
+  const formattedTodaysDate = formatDate(today).split(",")[1];
+  const transactions = await repo.getAllTransaction();
+  const dueToday = transactions.filter((transaction) => {
+    const formattedDate = transaction.dueDate.split(",")[1];
+    return formattedDate === formattedTodaysDate;
+  });
+
+  if (dueToday.length === 0) {
+    console.log(chalk.green("No transactions are due today."));
+    return;
+  }
+
+  console.log(chalk.yellow("Transactions due today:"));
+  console.table(dueToday);
 }
