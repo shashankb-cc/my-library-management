@@ -20,29 +20,6 @@ describe("TransactionRepository", () => {
     await rm("./data/mock-library.json");
   });
 
-  const generateBooks = (count: number) => {
-    return Array.from({ length: count }, () => ({
-      title: faker.lorem.words(3),
-      author: faker.internet.userName(),
-      publisher: faker.company.name(),
-      genre: faker.lorem.words(),
-      isbnNo: faker.number
-        .int({ min: 1000000000000, max: 9999999999999 })
-        .toString(),
-      numOfPages: faker.number.int({ min: 100, max: 1000 }),
-      totalNumOfCopies: faker.number.int({ min: 50, max: 100 }),
-    }));
-  };
-
-  const generateMembers = (count: number): IMemberBase[] => {
-    return Array.from({ length: count }, () => ({
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
-      email: faker.internet.email(),
-      phoneNumber: faker.phone.number(),
-    }));
-  };
-
   const generateTransaction = (count: number): ITransactionBase[] => {
     return Array.from({ length: count }, () => ({
       bookId: faker.number.int({ min: 1, max: 100 }),

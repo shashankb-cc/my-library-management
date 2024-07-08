@@ -158,7 +158,9 @@ async function searchBook(repo: BookRepository): Promise<IBook | null> {
     const id = await readLine("Please Enter the Book Id:", NumberParser());
     const book = await repo.getById(id!);
     if (!book) {
-      chalk.bold.red("\nNo Book found!!  Please Enter Valid Book ID!!!\n");
+      console.log(
+        chalk.bold.red("\nNo Book found!!  Please Enter Valid Book ID!!!\n")
+      );
       continue;
     } else {
       console.table(book);
