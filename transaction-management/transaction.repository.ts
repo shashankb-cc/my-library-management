@@ -27,6 +27,7 @@ export class TransactionRepository
       ...data,
       issueDate: formatDate(currentDate),
       dueDate: formatDate(dueDate),
+      returnDate: null,
       Status: "Issued",
     };
     this.transactions.push(transaction);
@@ -42,6 +43,7 @@ export class TransactionRepository
       const book = await this.bookRepo.getById(transaction.bookId);
       if (transaction.Status === "Returned" && book) {
         book.availableNumberOfCopies++;
+        transaction.returnDate = formatDate(new Date());
       } else if (transaction.Status === "Issued" && book) {
         book.availableNumberOfCopies--;
       }

@@ -98,12 +98,13 @@ async function returnBook(repo: TransactionRepository) {
       if (status) {
         if (transaction.Status === "Issued") {
           transaction.Status = "Returned";
-          repo.update(transaction.id);
+          await repo.update(transaction.id);
           console.log(
             chalk.green(
-              `\n\nBook returned successfully!\nBook ID:${transaction?.id}\n`
+              `\n\nBook returned successfully!\n Transaction ID:${transaction?.id}\n`
             )
           );
+          console.table(transaction);
           break;
         } else {
           console.log(chalk.red("\nThis book is already returned.\n"));
@@ -134,7 +135,9 @@ async function readConfirmation(message: string): Promise<boolean> {
       return false;
     } else {
       console.log(
-        chalk.red("Invalid input. Please enter 'Y' or Simply Press Enter'↩'.")
+        chalk.red(
+          "Invalid input. Please enter 'Y' or Simply Press Enter'↩' to select the book or 'N' to re-en."
+        )
       );
     }
   }
@@ -176,18 +179,6 @@ async function getTransactionInput(
       console.log(chalk.red("\nInvalid Book ID. Please try again.\n"));
     }
   }
-
-  // while (true) {
-  //   memberId = await readLine(
-  //     `\nPlease Enter the Member Id :`,
-  //     NumberParser(true)
-  //   );
-  //   if (memberId && (await memberRepo.getById(memberId))) {
-  //     break;
-  //   } else {
-  //     console.log(chalk.red("Invalid Member ID. Please try again."));
-  //   }
-  // }
   while (true) {
     memberId = await readLine(
       `\nPlease Enter the Member Id :`,
