@@ -32,13 +32,13 @@ export async function viewCompleteList<T, U extends T>(
 
   const loadData = async () => {
     const validateOffset = currentPage * limit + (offset % limit);
-    const result = repo.list({
+    const result = await repo.list({
       search: search || undefined,
       offset: validateOffset > 0 ? validateOffset : 0,
       limit: limit,
     });
 
-    if (result.items.length > 0) {
+    if (result && result.items.length > 0) {
       const totalPages =
         limit % 2 === 0
           ? Math.ceil(totalCount / limit)

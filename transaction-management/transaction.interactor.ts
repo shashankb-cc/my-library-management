@@ -1,6 +1,4 @@
 import { IInteractor } from "../core/interactor";
-import { Database } from "../db/ds";
-import { LibraryDataset } from "../db/library-dataset";
 import { LibraryInteractor } from "../src/library.interactor";
 import { TransactionRepository } from "./transaction.repository";
 import {
@@ -16,6 +14,8 @@ import { BookRepository } from "../book-management/book.repository";
 import chalk from "chalk";
 import { viewCompleteList } from "../core/pagination";
 import { formatDate } from "../core/formatdate";
+import { printTableWithoutIndex } from "../core/printTableFormat";
+import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
 
 export class TransactionInteractor implements IInteractor {
   menu = new Menu("\nTransaction-Management", [
@@ -23,16 +23,16 @@ export class TransactionInteractor implements IInteractor {
     { key: "2", label: "Return Book " },
     { key: "3", label: "Search Transaction" },
     { key: "4", label: "List Transaction" },
-    { key: "5", label: "Todays Due List" },
+    { key: "5", label: "Delete All Transaction History" },
     { key: "6", label: chalk.yellow("<Previous Menu>") },
   ]);
   constructor(
     public libraryInteractor: LibraryInteractor,
-    private readonly db: Database<LibraryDataset>
+    private readonly poolConnectionFactory: MySqlConnectionPoolFactory
   ) {}
-  private bookRepo = new BookRepository(this.db);
-  private memberRepo = new MemberRepository(this.db);
-  private repo = new TransactionRepository(this.db);
+  private bookRepo = new BookRepository(this.poolConnectionFactory);
+  private memberRepo = new MemberRepository(this.poolConnectionFactory);
+  private repo = new TransactionRepository(this.poolConnectionFactory);
   async showMenu(): Promise<void> {
     while (true) {
       const op = await this.menu.show();
@@ -51,7 +51,7 @@ export class TransactionInteractor implements IInteractor {
             await listTransaction(this.repo);
             break;
           case "5":
-            await todaysDueList(this.repo);
+            await deleteAll(this.repo);
             break;
           case "6":
             await this.libraryInteractor.showMenu();
@@ -76,14 +76,11 @@ async function issueBook(
     bookRepo,
     memberRepo
   );
-  const transactionRecord: ITransaction = await repo.create(transaction);
-  const createdTransaction = await repo.update(transactionRecord.id);
-  if (!createdTransaction) {
-    console.log(chalk.bold.red("Error while Creating the transaction"));
-    return;
-  }
-  console.log(`Book issued successfully!\nBook ID:${createdTransaction.id}`);
-  console.table(createdTransaction);
+  const transactionRecord: ITransaction | undefined =
+    await repo.create(transaction);
+  // const createdTransaction = await repo.update(transactionRecord?.id!);
+  console.log(`Book issued successfully!\nBook ID:${transactionRecord?.id}`);
+  console.table(transactionRecord);
 }
 
 async function returnBook(repo: TransactionRepository) {
@@ -113,6 +110,7 @@ async function returnBook(repo: TransactionRepository) {
           break;
         } else {
           console.log(chalk.red("\nThis book is already returned.\n"));
+          break;
         }
       } else {
         console.log(chalk.red("\n Please Re-enter valid ID.\n"));
@@ -254,29 +252,43 @@ async function listTransaction(repo: TransactionRepository) {
       NumberParser(true)
     )) || 10;
 
-  const totalTransaction = repo.getTotalCount();
+  const totalTransaction = await repo.getTotalCount({});
   await viewCompleteList<ITransactionBase, ITransaction>(
     repo,
     offset,
     limit,
-    totalTransaction,
+    totalTransaction!,
     search
   );
 }
-async function todaysDueList(repo: TransactionRepository) {
-  const today = new Date();
-  const formattedTodaysDate = formatDate(today).split(",")[1];
-  const transactions = await repo.getAllTransaction();
-  const dueToday = transactions.filter((transaction) => {
-    const formattedDate = transaction.dueDate.split(",")[1];
-    return formattedDate === formattedTodaysDate;
-  });
 
-  if (dueToday.length === 0) {
-    console.log(chalk.green("No transactions are due today."));
-    return;
+async function deleteAll(repo: TransactionRepository) {
+  const deleteConfirmation = await readLine(
+    `\nDo you want to delete all the transaction records (y,Y) || (n,N):`,
+    StringParser(true)
+  );
+  if (deleteConfirmation === "y" || deleteConfirmation === "Y") {
+    await repo.deleteAll();
+    console.log(
+      chalk.red("Your Complete Transaction history has been Deleted\n")
+    );
   }
-
-  console.log(chalk.yellow("Transactions due today:"));
-  console.table(dueToday);
+  return;
 }
+// async function todaysDueList(repo: TransactionRepository) {
+//   const today = new Date();
+//   const formattedTodaysDate = formatDate(today).split(",")[1];
+//   const transactions = repo.getAllTransaction();
+//   const dueToday = transactions.filter((transaction) => {
+//     const formattedDate = transaction.dueDate.split(",")[1];
+//     return formattedDate === formattedTodaysDate;
+//   });
+
+//   if (dueToday.length === 0) {
+//     console.log(chalk.green("No transactions are due today."));
+//     return;
+//   }
+
+//   console.log(chalk.yellow("Transactions due today:"));
+//   printTableWithoutIndex(dueToday);
+// }

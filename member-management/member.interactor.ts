@@ -1,6 +1,5 @@
 import {
   NumberParser,
-  readChar,
   readLine,
   StringParser,
 } from "../core/input.utils";
@@ -10,10 +9,10 @@ import { IMember, IMemberBase, memberSchema } from "./models/member.model";
 import { MemberRepository } from "./member.repository";
 import chalk from "chalk";
 import { ZodError } from "zod";
-import { Database } from "../db/ds";
 import { LibraryInteractor } from "../src/library.interactor";
 import { LibraryDataset } from "../db/library-dataset";
 import { viewCompleteList } from "../core/pagination";
+import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
 
 const menu = new Menu("Member-Management", [
   { key: "1", label: "Add Member" },
@@ -27,9 +26,9 @@ const menu = new Menu("Member-Management", [
 export class MemberInteractor implements IInteractor {
   constructor(
     public libraryInteractor: LibraryInteractor,
-    private readonly db: Database<LibraryDataset>
+    private readonly poolConnectionFactory: MySqlConnectionPoolFactory
   ) {}
-  private repo = new MemberRepository(this.db);
+  private repo = new MemberRepository(this.poolConnectionFactory);
   async showMenu(): Promise<void> {
     let loop = true;
     while (loop) {
@@ -62,15 +61,53 @@ export class MemberInteractor implements IInteractor {
     }
   }
 }
-
+async function getMemberInput(member?: IMember) {
+  try {
+    const firstName =
+      (await readLine(
+        `Please Enter the first name ${member?.firstName ?? ""} : `,
+        StringParser(true, !!member)
+      )) || member?.firstName;
+    const lastName =
+      (await readLine(
+        `Please Enter the last name: ${member?.lastName ?? ""} : `,
+        StringParser(true, !!member)
+      )) || member?.lastName;
+    const email =
+      (await readLine(
+        `Please Enter the email id: ${member?.email ?? ""} : `,
+        StringParser(true, !!member)
+      )) || member?.email;
+    const phoneNumber =
+      (await readLine(
+        `Please Enter the Phone number: ${member?.phoneNumber ?? ""} : `,
+        StringParser(true, !!member)
+      )) || member?.phoneNumber;
+    return {
+      firstName: firstName!,
+      lastName: lastName!,
+      email: email!,
+      phoneNumber: phoneNumber!,
+    };
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(
+        chalk.bold.red("\nError while getting member input:\n"),
+        error.message
+      );
+    }
+  }
+}
 async function addMember(repo: MemberRepository) {
   while (true) {
     try {
-      const member: IMemberBase = await getMemberInput();
+      const member: IMemberBase | undefined = await getMemberInput();
       const validateMember = memberSchema.parse(member);
       const createdMember = await repo.create(validateMember);
       console.log(
-        chalk.green(`Member added successfully!\nMember ID:${createdMember.id}`)
+        chalk.green(
+          `Member added successfully!\nMember ID:${createdMember?.id}`
+        )
       );
       console.table(createdMember);
       break;
@@ -88,60 +125,67 @@ async function addMember(repo: MemberRepository) {
   }
 }
 
-async function getMemberInput(member?: IMember) {
-  const firstName =
-    (await readLine(
-      `Please Enter the first name ${member?.firstName ?? ""} : `,
-      StringParser(true, !!member)
-    )) || member?.firstName;
-  const lastName =
-    (await readLine(
-      `Please Enter the last name: ${member?.lastName ?? ""} : `,
-      StringParser(true, !!member)
-    )) || member?.lastName;
-  const email =
-    (await readLine(
-      `Please Enter the email id: ${member?.email ?? ""} : `,
-      StringParser(true, !!member)
-    )) || member?.email;
-  const phoneNumber =
-    (await readLine(
-      `Please Enter the Phone number: ${member?.phoneNumber ?? ""} : `,
-      StringParser(true, !!member)
-    )) || member?.phoneNumber;
-  return {
-    firstName: firstName!,
-    lastName: lastName!,
-    email: email!,
-    phoneNumber: phoneNumber!,
-  };
-}
-
 async function updateMember(repo: MemberRepository) {
   let loop = true;
   while (loop) {
-    const memberId = await readLine(
-      "Please Enter the member ID: ",
-      NumberParser()
-    );
-    const currentMember: IMember | null = await repo.getById(memberId!);
-    if (!currentMember) {
-      await readLine("Please Enter valid Member Id", NumberParser());
-    } else {
-      loop = false;
-      const member: IMemberBase = await getMemberInput(currentMember);
-      const updatedMember = await repo.update(memberId!, member);
-      console.log(
-        chalk.green(`\nMember with ID ${memberId} updated successfully.\n7`)
+    try {
+      const memberId = await readLine(
+        "Please Enter the member ID: ",
+        NumberParser()
       );
-      console.table(updatedMember);
+      const currentMember: IMember | undefined = await repo.getById(memberId!);
+      if (!currentMember) {
+        console.log(
+          chalk.bold.red("\nNo Member found! Please Enter a valid Member ID.\n")
+        );
+        continue;
+      } else {
+        loop = false;
+        const member: IMemberBase | undefined =
+          await getMemberInput(currentMember);
+        const updatedMember = await repo.update(memberId!, member!);
+        console.log(
+          chalk.green(`\nMember with ID ${memberId} updated successfully.\n7`)
+        );
+        console.table(updatedMember);
+      }
+    } catch (error) {
+      console.error(
+        chalk.bold.red("\nError while updating the book:\n"),
+        error
+      );
     }
   }
 }
 
 async function searchMember(repo: MemberRepository): Promise<IMember | null> {
   while (true) {
-    const id = await readLine("Please Enter the Member Id:", NumberParser());
+    try {
+      const id = await readLine("Please Enter the Member Id:", NumberParser());
+      const member = await repo.getById(id!);
+      if (!member) {
+        console.log(
+          chalk.red(
+            "No member found with the given ID. Please enter a valid Member ID."
+          )
+        );
+        continue;
+      } else {
+        console.table(member);
+        return member;
+      }
+    } catch (error) {
+      console.error(
+        chalk.bold.red("\nError while searching the Member:\n"),
+        error
+      );
+    }
+  }
+}
+
+async function deleteMember(repo: MemberRepository) {
+  try {
+    const id = (await readLine("Please Enter the Member Id:", NumberParser()))!;
     const member = await repo.getById(id!);
     if (!member) {
       console.log(
@@ -149,27 +193,16 @@ async function searchMember(repo: MemberRepository): Promise<IMember | null> {
           "No member found with the given ID. Please enter a valid Member ID."
         )
       );
-      continue;
     } else {
-      console.table(member);
-      return member;
+      const deletedMember = await repo.delete(id!);
+      console.log(chalk.green(`Member with a Id ${id} deleted successfully\n`));
+      console.table(deletedMember);
     }
-  }
-}
-
-async function deleteMember(repo: MemberRepository) {
-  const id = (await readLine("Please Enter the Member Id:", NumberParser()))!;
-  const member = await repo.getById(id!);
-  if (!member) {
-    console.log(
-      chalk.red(
-        "No member found with the given ID. Please enter a valid Member ID."
-      )
+  } catch (error) {
+    console.error(
+      chalk.bold.red("\nError while deleting the Member:\n"),
+      error
     );
-  } else {
-    const deletedMember = await repo.delete(id!);
-    console.log(chalk.green(`Member with a Id ${id} deleted successfully\n`));
-    console.table(deletedMember);
   }
 }
 
@@ -189,7 +222,7 @@ async function listOfMembers(repo: MemberRepository) {
       NumberParser(true)
     ))! || 10;
 
-  const totalMembers = repo.getTotalCount();
+  const totalMembers = await repo.getTotalCount({});
 
-  await viewCompleteList(repo, offset, limit, totalMembers, search);
+  await viewCompleteList(repo, offset, limit, totalMembers!, search);
 }

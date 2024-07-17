@@ -7,6 +7,10 @@ import { LibraryDataset } from "../db/library-dataset";
 import { MemberInteractor } from "../member-management/member.interactor";
 import { TransactionInteractor } from "../transaction-management/transaction.interactor";
 import chalk from "chalk";
+import { LibraryDB } from "../db/libraryDB";
+import { DBConfig } from "../db/mysql-db";
+import { AppEnvs } from "../read-env";
+import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
 
 export class LibraryInteractor implements IInteractor {
   menu = new Menu("Library-Management", [
@@ -17,27 +21,28 @@ export class LibraryInteractor implements IInteractor {
   ]);
   constructor() {}
   async showMenu(): Promise<void> {
-    const database = new Database<LibraryDataset>(
-      join(__dirname, "../data/library.json")
-    );
+    const dbConfig: DBConfig = {
+      dbURL: AppEnvs.DATABASE_URL,
+    };
+    const poolFactory = new MySqlConnectionPoolFactory(dbConfig.dbURL);
     let loop = true;
     while (loop) {
       const op = await this.menu.show();
       if (op) {
         switch (op?.key.toLocaleLowerCase()) {
           case "1":
-            const bookInteractor = new BookInteractor(this, database);
+            const bookInteractor = new BookInteractor(this, poolFactory);
             await bookInteractor.showMenu();
             break;
           case "2":
-            const memberInteractor = new MemberInteractor(this, database);
+            const memberInteractor = new MemberInteractor(this, poolFactory);
             await memberInteractor.showMenu();
             break;
 
           case "3":
             const transactionInteractor = new TransactionInteractor(
               this,
-              database
+              poolFactory
             );
             await transactionInteractor.showMenu();
             break;
