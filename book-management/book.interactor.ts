@@ -9,6 +9,7 @@ import { LibraryInteractor } from "../src/library.interactor";
 import { viewCompleteList } from "../core/pagination";
 import { LibraryDB } from "../db/libraryDB";
 import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
+import { MySql2Database } from "drizzle-orm/mysql2";
 
 export class BookInteractor implements IInteractor {
   menu = new Menu("Book-Management", [
@@ -22,10 +23,10 @@ export class BookInteractor implements IInteractor {
 
   constructor(
     public libraryInteractor: LibraryInteractor,
-    private readonly poolConnectionFactory: MySqlConnectionPoolFactory
+    private readonly db: MySql2Database<Record<string, never>>
   ) {}
 
-  private repo = new BookRepository(this.poolConnectionFactory);
+  private repo = new BookRepository(this.db);
 
   async showMenu(): Promise<void> {
     while (true) {
@@ -236,7 +237,7 @@ async function listOfBooks(repo: BookRepository) {
         NumberParser(true)
       )) || 10;
 
-    const totalBooks = await repo.getTotalCount({});
+    const totalBooks = await repo.getTotalCount();
     await viewCompleteList<IBookBase, IBook>(
       repo,
       offset,

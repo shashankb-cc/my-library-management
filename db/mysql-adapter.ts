@@ -1,4 +1,6 @@
 import mysql, { QueryResult } from "mysql2/promise";
+import { drizzle, MySqlDatabase } from "drizzle-orm/mysql2";
+import { AppEnvs } from "../read-env";
 export interface IConnection<QR> {
   initialize(): Promise<void>;
   query: <T extends QR>(sql: string, values: any) => Promise<T>;
@@ -196,5 +198,13 @@ export class MySqlConnectionPoolFactory
       this.pool = mysql.createPool(this.connectionString);
     const txnPoolConnection = new MySqlTransactionPoolConnection(this.pool!);
     return txnPoolConnection;
+  }
+  async shutdown(): Promise<void> {
+    this.pool?.end();
+  }
+  async drizzleConnection(): Promise<MySqlDatabase<any, any, any, any>> {
+    const pool = mysql.createPool(AppEnvs.DATABASE_URL);
+    const db = drizzle(pool);
+    return db;
   }
 }
