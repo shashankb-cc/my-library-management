@@ -10,6 +10,7 @@ import { viewCompleteList } from "../core/pagination";
 import { LibraryDB } from "../db/libraryDB";
 import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
 import { MySql2Database } from "drizzle-orm/mysql2";
+import { printTableWithoutIndex } from "../core/printTableFormat";
 
 export class BookInteractor implements IInteractor {
   menu = new Menu("Book-Management", [
@@ -74,27 +75,27 @@ async function getBookInput(book?: IBook) {
       )) || book?.title;
     const author =
       (await readLine(
-        `Please Enter the Author: ${book ? `(${book.author})` : ""}`,
+        `Please Enter the Author: ${book ? `(${book.author}) : ` : ""}`,
         StringParser(true, !!book)
       )) || book?.author;
     const publisher =
       (await readLine(
-        `Please Enter the Publisher: ${book ? `(${book.publisher})` : ""}`,
+        `Please Enter the Publisher: ${book ? `(${book.publisher}) : ` : ""}`,
         StringParser(true, !!book)
       )) || book?.publisher;
     const genre =
       (await readLine(
-        `Please Enter the Genre: ${book ? `(${book.genre})` : ""}`,
+        `Please Enter the Genre: ${book ? `(${book.genre}) : ` : ""}`,
         StringParser(true, !!book)
       )) || book?.genre;
     const isbnNo =
       (await readLine(
-        `Please Enter the ISBN: ${book ? `(${book.isbnNo})` : ""}`,
+        `Please Enter the ISBN: ${book ? `(${book.isbnNo}) : ` : ""}`,
         StringParser(true, !!book)
       )) || book?.isbnNo;
     const pages =
       (await readLine(
-        `Please Enter the Number of Pages: ${book ? `(${book.totalNumOfCopies})` : ""}`,
+        `Please Enter the Number of Pages: ${book ? `(${book.totalNumOfCopies}) : ` : ""}`,
         NumberParser(!!book)
       )) || book?.numOfPages;
     let totalCopies = book?.totalNumOfCopies;

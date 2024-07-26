@@ -62,22 +62,22 @@ async function getMemberInput(member?: IMember) {
   try {
     const firstName =
       (await readLine(
-        `Please Enter the first name ${member?.firstName ?? ""} : `,
+        `Please Enter the first name (${member?.firstName ?? ""}) : `,
         StringParser(true, !!member)
       )) || member?.firstName;
     const lastName =
       (await readLine(
-        `Please Enter the last name: ${member?.lastName ?? ""} : `,
+        `Please Enter the last name: (${member?.lastName ?? ""}) : `,
         StringParser(true, !!member)
       )) || member?.lastName;
     const email =
       (await readLine(
-        `Please Enter the email id: ${member?.email ?? ""} : `,
+        `Please Enter the email id: (${member?.email ?? ""}) : `,
         StringParser(true, !!member)
       )) || member?.email;
     const phoneNumber =
       (await readLine(
-        `Please Enter the Phone number: ${member?.phoneNumber ?? ""} : `,
+        `Please Enter the Phone number: (${member?.phoneNumber ?? ""}) : `,
         StringParser(true, !!member)
       )) || member?.phoneNumber;
     return {

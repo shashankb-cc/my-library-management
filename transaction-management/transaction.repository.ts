@@ -8,7 +8,6 @@ import { transactions } from "../src/drizzle/schema";
 import { eq, count, or, like } from "drizzle-orm";
 import { formatDate } from "../core/formatdate";
 import chalk from "chalk";
-import { log } from "console";
 
 export class TransactionRepository
   implements IRepository<ITransactionBase, ITransaction>
