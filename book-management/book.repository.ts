@@ -9,26 +9,19 @@ import chalk from "chalk";
 export class BookRepository implements IRepository<IBookBase, IBook> {
   constructor(private db: MySql2Database<Record<string, never>>) {}
 
-  async create(data: IBookBase): Promise<IBook | undefined> {
-    let connection;
+  async create(data: IBookBase): Promise<IBook | void> {
     try {
       const book: Omit<IBook, "id"> = {
         ...data,
         availableNumberOfCopies: data.totalNumOfCopies,
       };
-      const [result] = await this.db
-        .insert(books)
-        .values({
-          ...data,
-          availableNumberOfCopies: data.totalNumOfCopies,
-        })
-        .$returningId();
-      if (result) {
-        const insertedBook = await this.db
+      const [result] = await this.db.insert(books).values(book).$returningId();
+      if (result!) {
+        const [insertedBook] = await this.db
           .select()
           .from(books)
           .where(eq(books.id, result.id));
-        return insertedBook as unknown as IBook;
+        return insertedBook as IBook;
       }
     } catch (error) {
       throw error;

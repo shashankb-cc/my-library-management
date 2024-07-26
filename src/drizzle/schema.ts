@@ -1,10 +1,10 @@
-import {
-  bigint,
-  int,
-  mysqlTable,
-  serial,
-  varchar,
-} from "drizzle-orm/mysql-core";
+  import {
+    bigint,
+    int,
+    mysqlTable,
+    serial,
+    varchar,
+  } from "drizzle-orm/mysql-core";
 
 export const books = mysqlTable("books", {
   id: serial("id").primaryKey(),
@@ -28,10 +28,10 @@ export const members = mysqlTable("members", {
 
 export const transactions = mysqlTable("transactions", {
   id: serial("id").primaryKey(),
-  bookId: bigint("bookId", { mode: "bigint", unsigned: true })
+  bookId: int("bookId")
     .references(() => books.id)
     .notNull(),
-  memberId: bigint("memberId", { mode: "bigint", unsigned: true })
+  memberId: int("memberId")
     .references(() => members.id)
     .notNull(),
   issueDate: varchar("issueDate", { length: 100 }).notNull(),

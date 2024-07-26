@@ -17,11 +17,11 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
         .values(member)
         .$returningId();
       if (result) {
-        const insertedMember = await this.db
+        const [insertedMember] = await this.db
           .select()
           .from(members)
           .where(eq(members.id, result.id));
-        return insertedMember as unknown as IMember;
+        return insertedMember as IMember;
       }
     } catch (error) {
       throw error;

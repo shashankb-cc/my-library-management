@@ -131,7 +131,9 @@ async function addBook(repo: BookRepository) {
       const validatedBook = bookSchema.parse(book);
       const createdBook = await repo.create(validatedBook);
       chalk.green(
-        console.log(`Book added successfully!\nBook ID: ${createdBook?.id}`)
+        console.log(
+          chalk.green(`Book added successfully!\nBook ID: ${createdBook?.id}`)
+        )
       );
       console.table(createdBook);
       break;

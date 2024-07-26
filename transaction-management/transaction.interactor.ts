@@ -77,8 +77,7 @@ async function issueBook(
     bookRepo,
     memberRepo
   );
-  const transactionRecord: ITransaction | undefined =
-    await repo.create(transaction);
+  const transactionRecord: ITransaction | void = await repo.create(transaction);
   // const createdTransaction = await repo.update(transactionRecord?.id!);
   console.log(`Book issued successfully!\nBook ID:${transactionRecord?.id}`);
   console.table(transactionRecord);

@@ -17,7 +17,7 @@ export class TransactionRepository
   bookRepo = new BookRepository(this.db);
   memberRepo = new MemberRepository(this.db);
 
-  async create(data: ITransactionBase): Promise<ITransaction | undefined> {
+  async create(data: ITransactionBase): Promise<ITransaction | void> {
     try {
       const currentDate = new Date();
       const dueDays = 7;
@@ -31,79 +31,75 @@ export class TransactionRepository
         returnDate: null,
         Status: "Issued",
       };
+      const transactionRecord = await this.db.transaction(async (txn) => {
+        const [result] = await txn
+          .insert(transactions)
+          .values(transaction)
+          .$returningId();
 
-      const [result] = await this.db
-        .insert(transactions)
-        .values({
-          ...data,
-          bookId: BigInt(data.bookId),
-          memberId: BigInt(data.memberId),
-          issueDate: formatDate(currentDate),
-          dueDate: formatDate(dueDate),
-          returnDate: null,
-          Status: "Issued",
-        })
-        .$returningId();
+        if (result) {
+          const [insertedTransaction] = await txn
+            .select()
+            .from(transactions)
+            .where(eq(transactions.id, result.id));
+          return insertedTransaction as ITransaction;
+        }
+      });
+      return transactionRecord;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-      if (result) {
-        const insertedTransaction = await this.db
+  async update(transactionId: number): Promise<ITransaction | void> {
+    try {
+      await this.db.transaction(async (txn) => {
+        await txn
+          .update(transactions)
+          .set({ Status: "Returned", returnDate: formatDate(new Date()) })
+          .where(eq(transactions.id, transactionId));
+
+        const [updatedTransaction] = await txn
           .select()
           .from(transactions)
-          .where(eq(transactions.id, result.id));
+          .where(eq(transactions.id, transactionId))
+          .limit(1);
 
-        return insertedTransaction as unknown as ITransaction;
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
+        if (updatedTransaction) {
+          const transaction = updatedTransaction as ITransaction;
+          const book = await this.bookRepo.getById(transaction.bookId);
 
-  async update(transactionId: number): Promise<ITransaction | undefined> {
-    try {
-      await this.db
-        .update(transactions)
-        .set({ Status: "Returned", returnDate: formatDate(new Date()) })
-        .where(eq(transactions.id, transactionId));
+          if (transaction.Status === "Returned" && book) {
+            await this.bookRepo.update(book.id, {
+              availableNumberOfCopies: book.availableNumberOfCopies + 1,
+            });
+          } else if (transaction.Status === "Issued" && book) {
+            await this.bookRepo.update(book.id, {
+              availableNumberOfCopies: book.availableNumberOfCopies - 1,
+            });
+          }
 
-      const [updatedTransaction] = await this.db
-        .select()
-        .from(transactions)
-        .where(eq(transactions.id, transactionId))
-        .limit(1);
-
-      if (updatedTransaction) {
-        const transaction = updatedTransaction as unknown as ITransaction;
-        const book = await this.bookRepo.getById(transaction.bookId);
-
-        if (transaction.Status === "Returned" && book) {
-          await this.bookRepo.update(book.id, {
-            availableNumberOfCopies: book.availableNumberOfCopies + 1,
-          });
-        } else if (transaction.Status === "Issued" && book) {
-          await this.bookRepo.update(book.id, {
-            availableNumberOfCopies: book.availableNumberOfCopies - 1,
-          });
+          return updatedTransaction as ITransaction;
         }
-
-        return updatedTransaction as unknown as ITransaction;
-      }
+      });
     } catch (error) {
       throw error;
     }
   }
 
-  async delete(id: number): Promise<ITransaction | undefined> {
+  async delete(id: number): Promise<ITransaction | void> {
     try {
       const deletedTransaction = await this.getById(id);
+      await this.db.transaction(async (txn) => {
+        if (!deletedTransaction) {
+          console.log(chalk.red("No Such Transaction to delete"));
+          return;
+        }
 
-      if (!deletedTransaction) {
-        console.log(chalk.red("No Such Transaction to delete"));
-        return undefined;
-      }
+        await txn.delete(transactions).where(eq(transactions.id, id));
 
-      await this.db.delete(transactions).where(eq(transactions.id, id));
-
-      return deletedTransaction;
+        return deletedTransaction;
+      });
     } catch (error) {
       throw error;
     }
@@ -136,7 +132,7 @@ export class TransactionRepository
         .limit(limit);
       if (result) {
         return {
-          items: result as unknown as ITransaction[],
+          items: result as ITransaction[],
           pagination: { offset, limit, total: totalCount },
         };
       }
@@ -154,7 +150,7 @@ export class TransactionRepository
         .limit(1);
 
       if (result) {
-        return result as unknown as ITransaction;
+        return result as ITransaction;
       }
     } catch (error) {
       throw error;
@@ -174,12 +170,14 @@ export class TransactionRepository
       throw error;
     }
   }
-  async deleteAll(): Promise<number | undefined> {
+  async deleteAll(): Promise<number | void> {
     try {
-      const [result] = await this.db.delete(transactions);
-      if (result) {
-        return result.affectedRows;
-      }
+      this.db.transaction(async (txn) => {
+        const [result] = await txn.delete(transactions);
+        if (result) {
+          return result.affectedRows;
+        }
+      });
     } catch (error) {
       throw error;
     }
