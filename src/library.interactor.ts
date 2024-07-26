@@ -37,13 +37,13 @@ export class LibraryInteractor implements IInteractor {
             await memberInteractor.showMenu();
             break;
 
-          // case "3":
-          //   const transactionInteractor = new TransactionInteractor(
-          //     this,
-          //     poolFactory
-          //   );
-          //   await transactionInteractor.showMenu();
-          //   break;
+          case "3":
+            const transactionInteractor = new TransactionInteractor(
+              this,
+              this.db
+            );
+            await transactionInteractor.showMenu();
+            break;
 
           case "4":
             process.exit(0);

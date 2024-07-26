@@ -16,6 +16,7 @@ import { viewCompleteList } from "../core/pagination";
 import { formatDate } from "../core/formatdate";
 import { printTableWithoutIndex } from "../core/printTableFormat";
 import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
+import { MySql2Database } from "drizzle-orm/mysql2";
 
 export class TransactionInteractor implements IInteractor {
   menu = new Menu("\nTransaction-Management", [
@@ -28,11 +29,11 @@ export class TransactionInteractor implements IInteractor {
   ]);
   constructor(
     public libraryInteractor: LibraryInteractor,
-    private readonly poolConnectionFactory: MySqlConnectionPoolFactory
+    private readonly db: MySql2Database<Record<string, never>>
   ) {}
-  private bookRepo = new BookRepository(this.poolConnectionFactory);
-  private memberRepo = new MemberRepository(this.poolConnectionFactory);
-  private repo = new TransactionRepository(this.poolConnectionFactory);
+  private bookRepo = new BookRepository(this.db);
+  private memberRepo = new MemberRepository(this.db);
+  private repo = new TransactionRepository(this.db);
   async showMenu(): Promise<void> {
     while (true) {
       const op = await this.menu.show();
@@ -252,7 +253,7 @@ async function listTransaction(repo: TransactionRepository) {
       NumberParser(true)
     )) || 10;
 
-  const totalTransaction = await repo.getTotalCount({});
+  const totalTransaction = await repo.getTotalCount();
   await viewCompleteList<ITransactionBase, ITransaction>(
     repo,
     offset,
