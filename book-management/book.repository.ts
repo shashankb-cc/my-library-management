@@ -1,13 +1,9 @@
 import { IPageRequest, IPagesResponse } from "../core/pagination";
 import { IRepository } from "../core/repository";
 import { IBook, IBookBase } from "./models/books.model";
-import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
-import { DBConfig } from "../db/mysql-db";
-import { AppEnvs } from "../read-env";
 import { MySql2Database } from "drizzle-orm/mysql2";
 import { books } from "../src/drizzle/schema";
-import { eq, count, SQL, or, like } from "drizzle-orm";
-
+import { eq, count, or, like } from "drizzle-orm";
 import chalk from "chalk";
 
 export class BookRepository implements IRepository<IBookBase, IBook> {

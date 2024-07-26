@@ -1,8 +1,4 @@
-import {
-  NumberParser,
-  readLine,
-  StringParser,
-} from "../core/input.utils";
+import { NumberParser, readLine, StringParser } from "../core/input.utils";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
 import { IMember, IMemberBase, memberSchema } from "./models/member.model";
@@ -13,6 +9,7 @@ import { LibraryInteractor } from "../src/library.interactor";
 import { LibraryDataset } from "../db/library-dataset";
 import { viewCompleteList } from "../core/pagination";
 import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
+import { MySql2Database } from "drizzle-orm/mysql2";
 
 const menu = new Menu("Member-Management", [
   { key: "1", label: "Add Member" },
@@ -26,9 +23,9 @@ const menu = new Menu("Member-Management", [
 export class MemberInteractor implements IInteractor {
   constructor(
     public libraryInteractor: LibraryInteractor,
-    private readonly poolConnectionFactory: MySqlConnectionPoolFactory
+    private readonly db: MySql2Database<Record<string, never>>
   ) {}
-  private repo = new MemberRepository(this.poolConnectionFactory);
+  private repo = new MemberRepository(this.db);
   async showMenu(): Promise<void> {
     let loop = true;
     while (loop) {
@@ -222,7 +219,7 @@ async function listOfMembers(repo: MemberRepository) {
       NumberParser(true)
     ))! || 10;
 
-  const totalMembers = await repo.getTotalCount({});
+  const totalMembers = await repo.getTotalCount();
 
   await viewCompleteList(repo, offset, limit, totalMembers!, search);
 }

@@ -32,10 +32,10 @@ export class LibraryInteractor implements IInteractor {
             const bookInteractor = new BookInteractor(this, this.db);
             await bookInteractor.showMenu();
             break;
-          // case "2":
-          //   const memberInteractor = new MemberInteractor(this, poolFactory);
-          //   await memberInteractor.showMenu();
-          //   break;
+          case "2":
+            const memberInteractor = new MemberInteractor(this, this.db);
+            await memberInteractor.showMenu();
+            break;
 
           // case "3":
           //   const transactionInteractor = new TransactionInteractor(
