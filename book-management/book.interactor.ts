@@ -9,6 +9,8 @@ import { LibraryInteractor } from "../src/library.interactor";
 import { viewCompleteList } from "../core/pagination";
 import { LibraryDB } from "../db/libraryDB";
 import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
+import { MySql2Database } from "drizzle-orm/mysql2";
+import { printTableWithoutIndex } from "../core/printTableFormat";
 
 export class BookInteractor implements IInteractor {
   menu = new Menu("Book-Management", [
@@ -22,10 +24,10 @@ export class BookInteractor implements IInteractor {
 
   constructor(
     public libraryInteractor: LibraryInteractor,
-    private readonly poolConnectionFactory: MySqlConnectionPoolFactory
+    private readonly db: MySql2Database<Record<string, never>>
   ) {}
 
-  private repo = new BookRepository(this.poolConnectionFactory);
+  private repo = new BookRepository(this.db);
 
   async showMenu(): Promise<void> {
     while (true) {
@@ -73,27 +75,27 @@ async function getBookInput(book?: IBook) {
       )) || book?.title;
     const author =
       (await readLine(
-        `Please Enter the Author: ${book ? `(${book.author})` : ""}`,
+        `Please Enter the Author: ${book ? `(${book.author}) : ` : ""}`,
         StringParser(true, !!book)
       )) || book?.author;
     const publisher =
       (await readLine(
-        `Please Enter the Publisher: ${book ? `(${book.publisher})` : ""}`,
+        `Please Enter the Publisher: ${book ? `(${book.publisher}) : ` : ""}`,
         StringParser(true, !!book)
       )) || book?.publisher;
     const genre =
       (await readLine(
-        `Please Enter the Genre: ${book ? `(${book.genre})` : ""}`,
+        `Please Enter the Genre: ${book ? `(${book.genre}) : ` : ""}`,
         StringParser(true, !!book)
       )) || book?.genre;
     const isbnNo =
       (await readLine(
-        `Please Enter the ISBN: ${book ? `(${book.isbnNo})` : ""}`,
+        `Please Enter the ISBN: ${book ? `(${book.isbnNo}) : ` : ""}`,
         StringParser(true, !!book)
       )) || book?.isbnNo;
     const pages =
       (await readLine(
-        `Please Enter the Number of Pages: ${book ? `(${book.totalNumOfCopies})` : ""}`,
+        `Please Enter the Number of Pages: ${book ? `(${book.totalNumOfCopies}) : ` : ""}`,
         NumberParser(!!book)
       )) || book?.numOfPages;
     let totalCopies = book?.totalNumOfCopies;
@@ -129,7 +131,9 @@ async function addBook(repo: BookRepository) {
       const validatedBook = bookSchema.parse(book);
       const createdBook = await repo.create(validatedBook);
       chalk.green(
-        console.log(`Book added successfully!\nBook ID: ${createdBook?.id}`)
+        console.log(
+          chalk.green(`Book added successfully!\nBook ID: ${createdBook?.id}`)
+        )
       );
       console.table(createdBook);
       break;
@@ -236,7 +240,7 @@ async function listOfBooks(repo: BookRepository) {
         NumberParser(true)
       )) || 10;
 
-    const totalBooks = await repo.getTotalCount({});
+    const totalBooks = await repo.getTotalCount();
     await viewCompleteList<IBookBase, IBook>(
       repo,
       offset,

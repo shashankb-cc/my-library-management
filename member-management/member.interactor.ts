@@ -1,8 +1,4 @@
-import {
-  NumberParser,
-  readLine,
-  StringParser,
-} from "../core/input.utils";
+import { NumberParser, readLine, StringParser } from "../core/input.utils";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
 import { IMember, IMemberBase, memberSchema } from "./models/member.model";
@@ -13,6 +9,7 @@ import { LibraryInteractor } from "../src/library.interactor";
 import { LibraryDataset } from "../db/library-dataset";
 import { viewCompleteList } from "../core/pagination";
 import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
+import { MySql2Database } from "drizzle-orm/mysql2";
 
 const menu = new Menu("Member-Management", [
   { key: "1", label: "Add Member" },
@@ -26,9 +23,9 @@ const menu = new Menu("Member-Management", [
 export class MemberInteractor implements IInteractor {
   constructor(
     public libraryInteractor: LibraryInteractor,
-    private readonly poolConnectionFactory: MySqlConnectionPoolFactory
+    private readonly db: MySql2Database<Record<string, never>>
   ) {}
-  private repo = new MemberRepository(this.poolConnectionFactory);
+  private repo = new MemberRepository(this.db);
   async showMenu(): Promise<void> {
     let loop = true;
     while (loop) {
@@ -65,22 +62,22 @@ async function getMemberInput(member?: IMember) {
   try {
     const firstName =
       (await readLine(
-        `Please Enter the first name ${member?.firstName ?? ""} : `,
+        `Please Enter the first name: ${member ? `(${member.firstName})` : ""}`,
         StringParser(true, !!member)
       )) || member?.firstName;
     const lastName =
       (await readLine(
-        `Please Enter the last name: ${member?.lastName ?? ""} : `,
+        `Please Enter the last name: ${member ? `(${member.lastName})` : ""}`,
         StringParser(true, !!member)
       )) || member?.lastName;
     const email =
       (await readLine(
-        `Please Enter the email id: ${member?.email ?? ""} : `,
+        `Please Enter the email id: ${member ? `(${member.email})` : ""}`,
         StringParser(true, !!member)
       )) || member?.email;
     const phoneNumber =
       (await readLine(
-        `Please Enter the Phone number: ${member?.phoneNumber ?? ""} : `,
+        `Please Enter the Phone number: ${member ? `(${member.phoneNumber})` : ""}`,
         StringParser(true, !!member)
       )) || member?.phoneNumber;
     return {
@@ -98,6 +95,7 @@ async function getMemberInput(member?: IMember) {
     }
   }
 }
+
 async function addMember(repo: MemberRepository) {
   while (true) {
     try {
@@ -222,7 +220,7 @@ async function listOfMembers(repo: MemberRepository) {
       NumberParser(true)
     ))! || 10;
 
-  const totalMembers = await repo.getTotalCount({});
+  const totalMembers = await repo.getTotalCount();
 
   await viewCompleteList(repo, offset, limit, totalMembers!, search);
 }

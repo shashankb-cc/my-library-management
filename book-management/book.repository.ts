@@ -1,133 +1,87 @@
-import { ResultSetHeader, RowDataPacket } from "mysql2";
-import {
-  generateCountSql,
-  generateDeleteSql,
-  generateInsertSql,
-  generateSelectSql,
-  generateUpdateSql,
-} from "../libs/mysql-query-generator.";
-import { WhereExpression } from "../libs/types";
 import { IPageRequest, IPagesResponse } from "../core/pagination";
 import { IRepository } from "../core/repository";
 import { IBook, IBookBase } from "./models/books.model";
-import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
-import { DBConfig } from "../db/mysql-db";
-import { AppEnvs } from "../read-env";
-
-const config: DBConfig = {
-  dbURL: AppEnvs.DATABASE_URL,
-};
+import { MySql2Database } from "drizzle-orm/mysql2";
+import { books } from "../src/drizzle/schema";
+import { eq, count, or, like } from "drizzle-orm";
+import chalk from "chalk";
 
 export class BookRepository implements IRepository<IBookBase, IBook> {
-  constructor(private poolFactory: MySqlConnectionPoolFactory) {}
+  constructor(private db: MySql2Database<Record<string, never>>) {}
 
-  async create(data: IBookBase): Promise<IBook | undefined> {
-    let connection;
+  async create(data: IBookBase): Promise<IBook | void> {
     try {
       const book: Omit<IBook, "id"> = {
         ...data,
         availableNumberOfCopies: data.totalNumOfCopies,
       };
-      const insertQuery = generateInsertSql<Omit<IBook, "id">>("books", book);
-      connection = await this.poolFactory.acquireConnection();
-      connection.initialize();
-      const result = await connection?.query<ResultSetHeader>(
-        insertQuery.sql,
-        insertQuery.data
-      );
-      if (result) {
-        const insertedBookId = result.insertId;
-        const insertedBook = await this.getById(insertedBookId);
+      const [result] = await this.db.insert(books).values(book).$returningId();
+      if (result!) {
+        const [insertedBook] = await this.db
+          .select()
+          .from(books)
+          .where(eq(books.id, result.id));
         return insertedBook as IBook;
       }
     } catch (error) {
       throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
     }
   }
-
   async update(
     bookId: number,
     data: Partial<IBook>
   ): Promise<IBook | undefined> {
-    let connection;
     try {
-      const updateQuery = generateUpdateSql<IBook>("books", data, {
-        id: { value: bookId, op: "EQUALS" },
-      });
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<ResultSetHeader>(
-        updateQuery.sql,
-        updateQuery.data
-      );
-      if (result) {
-        const updatedBook = await this.getById(bookId);
+      await this.db.update(books).set(data).where(eq(books.id, bookId));
+
+      const [updatedBook] = await this.db
+        .select()
+        .from(books)
+        .where(eq(books.id, bookId))
+        .limit(1);
+      if (updatedBook) {
         return updatedBook as IBook;
       }
     } catch (error) {
       throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
     }
   }
-
   async delete(bookId: number): Promise<IBook | undefined> {
-    let connection;
     try {
       const deletedBook = await this.getById(bookId);
-      const deleteQuery = generateDeleteSql<IBook>("books", {
-        id: { value: bookId, op: "EQUALS" },
-      });
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<ResultSetHeader>(
-        deleteQuery.sql,
-        deleteQuery.data
-      );
-      if (result && result.affectedRows > 0) {
-        return deletedBook as IBook;
+
+      if (!deletedBook) {
+        console.log(chalk.red("No Such Book to delete"));
+        return undefined;
       }
+
+      await this.db.delete(books).where(eq(books.id, bookId));
+
+      return deletedBook;
     } catch (error) {
       throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
     }
   }
-
   async list(params: IPageRequest): Promise<IPagesResponse<IBook> | undefined> {
-    let connection;
     try {
       const { limit, offset, search } = params;
-      const searchFilter: WhereExpression<IBook> = search
-        ? {
-            OR: [
-              { title: { value: search, op: "CONTAINS" } },
-              { isbnNo: { value: search, op: "CONTAINS" } },
-            ],
-          }
-        : {};
+      const searchFilter = search
+        ? or(
+            like(books.title, `%${search}%`),
+            like(books.isbnNo, `%${search}%`)
+          )
+        : undefined;
 
-      const totalCount = await this.getTotalCount(searchFilter);
+      const totalCount = await this.getTotalCount();
       if (!totalCount) throw new Error("Could not fetch the count");
 
-      const selectQuery = generateSelectSql<IBook>(
-        "books",
-        searchFilter,
-        offset,
-        limit,
-        []
-      );
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<RowDataPacket[]>(
-        selectQuery.sql,
-        selectQuery.data
-      );
+      const result = await this.db
+        .select()
+        .from(books)
+        .where(searchFilter)
+        .offset(offset)
+        .limit(limit);
+
       if (result) {
         return {
           items: result as IBook[],
@@ -136,77 +90,33 @@ export class BookRepository implements IRepository<IBookBase, IBook> {
       }
     } catch (error) {
       throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
-    }
-  }
-
-  async deleteAll() {
-    let connection;
-    try {
-      const deleteQuery = generateDeleteSql<IBook>("books", {});
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<ResultSetHeader>(
-        deleteQuery.sql,
-        deleteQuery.data
-      );
-      if (result && result.affectedRows > 0) {
-        return result.affectedRows;
-      }
-    } catch (error) {
-      throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
-    }
-  }
-
-  async getTotalCount(
-    where: WhereExpression<IBook>
-  ): Promise<number | undefined> {
-    let connection;
-    try {
-      const countQuery = generateCountSql("books", where);
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<RowDataPacket[]>(
-        countQuery.sql,
-        countQuery.data
-      );
-      if (result) return result[0]["COUNT(*)"] as number;
-    } catch (error) {
-      throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
     }
   }
 
   async getById(bookId: number): Promise<IBook | undefined> {
-    let connection;
     try {
-      const selectQuery = generateSelectSql<IBook>(
-        "books",
-        { id: { value: bookId, op: "EQUALS" } },
-        0,
-        1,
-        []
-      );
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<RowDataPacket[]>(
-        selectQuery.sql,
-        selectQuery.data
-      );
-      if (result) return result[0] as IBook;
+      const [result] = await this.db
+        .select()
+        .from(books)
+        .where(eq(books.id, bookId))
+        .limit(1);
+
+      if (result) {
+        return result as IBook;
+      }
     } catch (error) {
       throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
+    }
+  }
+  async getTotalCount(): Promise<number | undefined> {
+    try {
+      const [result] = await this.db.select({ value: count() }).from(books);
+
+      if (result) {
+        return result.value;
       }
+    } catch (error) {
+      throw error;
     }
   }
 }

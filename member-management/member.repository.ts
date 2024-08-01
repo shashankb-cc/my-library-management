@@ -1,47 +1,30 @@
-import { ResultSetHeader, RowDataPacket } from "mysql2";
-import {
-  generateCountSql,
-  generateDeleteSql,
-  generateInsertSql,
-  generateSelectSql,
-  generateUpdateSql,
-} from "../libs/mysql-query-generator.";
-import { WhereExpression } from "../libs/types";
 import { IPageRequest, IPagesResponse } from "../core/pagination";
 import { IRepository } from "../core/repository";
 import { IMemberBase, IMember } from "./models/member.model";
-import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
-import { DBConfig } from "../db/mysql-db";
-import { AppEnvs } from "../read-env";
-
-const config: DBConfig = {
-  dbURL: AppEnvs.DATABASE_URL,
-};
+import { MySql2Database } from "drizzle-orm/mysql2";
+import { members } from "../src/drizzle/schema";
+import { eq, count, or, like } from "drizzle-orm";
+import chalk from "chalk";
 
 export class MemberRepository implements IRepository<IMemberBase, IMember> {
-  constructor(private poolFactory: MySqlConnectionPoolFactory) {}
+  constructor(private db: MySql2Database<Record<string, never>>) {}
 
   async create(data: IMemberBase): Promise<IMember | undefined> {
-    let connection;
     try {
-      const insertQuery = generateInsertSql<IMemberBase>("members", data);
-      connection = await this.poolFactory.acquireConnection();
-      connection.initialize();
-      const result = await connection?.query<ResultSetHeader>(
-        insertQuery.sql,
-        insertQuery.data
-      );
+      const member: Omit<IMember, "id"> = { ...data };
+      const [result] = await this.db
+        .insert(members)
+        .values(member)
+        .$returningId();
       if (result) {
-        const insertedMemberId = result.insertId;
-        const insertedMember = await this.getById(insertedMemberId);
+        const [insertedMember] = await this.db
+          .select()
+          .from(members)
+          .where(eq(members.id, result.id));
         return insertedMember as IMember;
       }
     } catch (error) {
       throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
     }
   }
 
@@ -49,84 +32,60 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
     id: number,
     data: Partial<IMember>
   ): Promise<IMember | undefined> {
-    let connection;
     try {
-      const updateQuery = generateUpdateSql<IMember>("members", data, {
-        id: { value: id, op: "EQUALS" },
-      });
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<ResultSetHeader>(
-        updateQuery.sql,
-        updateQuery.data
-      );
-      if (result) {
-        const updatedMember = await this.getById(id);
+      await this.db.update(members).set(data).where(eq(members.id, id));
+
+      const [updatedMember] = await this.db
+        .select()
+        .from(members)
+        .where(eq(members.id, id))
+        .limit(1);
+      if (updatedMember) {
         return updatedMember as IMember;
       }
     } catch (error) {
       throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
     }
   }
 
   async delete(id: number): Promise<IMember | undefined> {
-    let connection;
     try {
       const deletedMember = await this.getById(id);
-      const deleteQuery = generateDeleteSql<IMember>("members", {
-        id: { value: id, op: "EQUALS" },
-      });
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<ResultSetHeader>(
-        deleteQuery.sql,
-        deleteQuery.data
-      );
-      if (result && result.affectedRows > 0) {
-        return deletedMember as IMember;
+      if (!deletedMember) {
+        console.log(chalk.red("No Such Member to delete"));
+        return undefined;
       }
+
+      await this.db.delete(members).where(eq(members.id, id));
+      return deletedMember;
     } catch (error) {
       throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
     }
   }
 
   async list(
     params: IPageRequest
   ): Promise<IPagesResponse<IMember> | undefined> {
-    let connection;
     try {
       const { limit, offset, search } = params;
-      const searchFilter: WhereExpression<IMember> = search
-        ? {
-            OR: [
-              { firstName: { value: search, op: "CONTAINS" } },
-              { lastName: { value: search, op: "CONTAINS" } },
-              { email: { value: search, op: "CONTAINS" } },
-            ],
-          }
-        : {};
+      const searchFilter = search
+        ? or(
+            like(members.firstName, `%${search}%`),
+            like(members.lastName, `%${search}%`),
+            like(members.email, `%${search}%`)
+          )
+        : undefined;
 
-      const totalCount = await this.getTotalCount(searchFilter);
+      const totalCount = await this.getTotalCount();
       if (!totalCount) throw new Error("Could not fetch the count");
 
-      const selectQuery = generateSelectSql<IMember>(
-        "members",
-        searchFilter,
-        offset,
-        limit,
-        []
-      );
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<RowDataPacket[]>(
-        selectQuery.sql,
-        selectQuery.data
-      );
+      const result = await this.db
+        .select()
+        .from(members)
+        .where(searchFilter)
+        .offset(offset)
+        .limit(limit);
+
       if (result) {
         return {
           items: result as IMember[],
@@ -135,77 +94,34 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
       }
     } catch (error) {
       throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
-    }
-  }
-
-  async deleteAll() {
-    let connection;
-    try {
-      const deleteQuery = generateDeleteSql<IMember>("members", {});
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<ResultSetHeader>(
-        deleteQuery.sql,
-        deleteQuery.data
-      );
-      if (result && result.affectedRows > 0) {
-        return result.affectedRows;
-      }
-    } catch (error) {
-      throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
-    }
-  }
-
-  async getTotalCount(
-    where: WhereExpression<IMember>
-  ): Promise<number | undefined> {
-    let connection;
-    try {
-      const countQuery = generateCountSql("members", where);
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<RowDataPacket[]>(
-        countQuery.sql,
-        countQuery.data
-      );
-      if (result) return result[0]["COUNT(*)"] as number;
-    } catch (error) {
-      throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
-      }
     }
   }
 
   async getById(id: number): Promise<IMember | undefined> {
-    let connection;
     try {
-      const selectQuery = generateSelectSql<IMember>(
-        "members",
-        { id: { value: id, op: "EQUALS" } },
-        0,
-        1,
-        []
-      );
-      connection = await this.poolFactory.acquireConnection();
-      const result = await connection.query<RowDataPacket[]>(
-        selectQuery.sql,
-        selectQuery.data
-      );
-      if (result) return result[0] as IMember;
+      const [result] = await this.db
+        .select()
+        .from(members)
+        .where(eq(members.id, id))
+        .limit(1);
+
+      if (result) {
+        return result as IMember;
+      }
     } catch (error) {
       throw error;
-    } finally {
-      if (connection) {
-        await connection.release();
+    }
+  }
+
+  async getTotalCount(): Promise<number | undefined> {
+    try {
+      const [result] = await this.db.select({ value: count() }).from(members);
+
+      if (result) {
+        return result.value;
       }
+    } catch (error) {
+      throw error;
     }
   }
 }
