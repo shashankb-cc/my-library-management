@@ -3,7 +3,8 @@
     "start": "ts-node src/library.ts",
     "test": "vitest",
     "db:generate": "drizzle-kit generate mysql2",
-    "db:migrate": "ts-node src/drizzle/migrate.ts"
+    "db:migrate": "ts-node src/drizzle/migrate.ts",
+    "server": "tsx watch ./book-management/book.server.ts"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.0.2",
@@ -27,6 +28,7 @@
     "drizzle-orm": "0.32.0",
     "globals": "15.8.0",
     "mysql2": "3.10.2",
+    "tsx": "4.16.2",
     "zod": "3.23.8"
   }
 }
