@@ -10,7 +10,7 @@ export type CustomResponse = http.ServerResponse;
 
 type NextMiddlewareExecutor = (error?: Error) => void;
 
-type Middleware = (
+export type Middleware = (
   request: CustomRequest,
   response: CustomResponse,
   next?: NextMiddlewareExecutor
@@ -63,49 +63,40 @@ export class HTTPServer {
       const routeMiddlewares = pathMap[url.pathname] || [];
       console.dir(routeMiddlewares, { depth: 0 });
 
-      // console.log(
-      //   `Found ${routeMiddlewares.length} route-specific middlewares for ${url.pathname}`
-      // );
-      // this.executeMiddlewares(request, response, this.appMiddlewares, 0);
       const allMiddlewares = [...this.appMiddlewares, ...routeMiddlewares];
       this.executeMiddlewares(request, response, allMiddlewares, 0);
     }
   }
 
-  // Methods to help register middlewares for respective methods and paths
-  public get(path: string, processor: Middleware) {
-    if (!this.middlewareMap["GET"][path]) {
-      this.middlewareMap["GET"][path] = [];
+  private registerRoute(
+    method: AllowedHTTPMethods,
+    path: string,
+    ...processor: Middleware[]
+  ) {
+    if (!this.middlewareMap[method][path]) {
+      this.middlewareMap[method][path] = [];
     }
-    this.middlewareMap["GET"][path].push(processor);
+    this.middlewareMap[method][path].push(...processor);
   }
 
-  public post(path: string, processor: Middleware) {
-    if (!this.middlewareMap["POST"][path]) {
-      this.middlewareMap["POST"][path] = [];
-    }
-    this.middlewareMap["POST"][path].push(processor);
+  public get(path: string, ...processor: Middleware[]) {
+    this.registerRoute("GET", path, ...processor);
   }
 
-  public put(path: string, processor: Middleware) {
-    if (!this.middlewareMap["PUT"][path]) {
-      this.middlewareMap["PUT"][path] = [];
-    }
-    this.middlewareMap["PUT"][path].push(processor);
+  public post(path: string, ...processor: Middleware[]) {
+    this.registerRoute("POST", path, ...processor);
   }
 
-  public patch(path: string, processor: Middleware) {
-    if (!this.middlewareMap["PATCH"][path]) {
-      this.middlewareMap["PATCH"][path] = [];
-    }
-    this.middlewareMap["PATCH"][path].push(processor);
+  public put(path: string, ...processor: Middleware[]) {
+    this.registerRoute("PUT", path, ...processor);
   }
 
-  public delete(path: string, processor: Middleware) {
-    if (!this.middlewareMap["DELETE"][path]) {
-      this.middlewareMap["DELETE"][path] = [];
-    }
-    this.middlewareMap["DELETE"][path].push(processor);
+  public patch(path: string, ...processor: Middleware[]) {
+    this.registerRoute("PATCH", path, ...processor);
+  }
+
+  public delete(path: string, ...processor: Middleware[]) {
+    this.registerRoute("DELETE", path, ...processor);
   }
 
   public use(middleware: Middleware) {

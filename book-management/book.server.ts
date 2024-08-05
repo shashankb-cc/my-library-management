@@ -3,6 +3,7 @@ import {
   CustomRequest,
   CustomResponse,
   AllowedHTTPMethods,
+  Middleware,
 } from "../server/server";
 import { BookRepository } from "./book.repository";
 import { getDrizzleDB } from "../src/drizzle/drizzleDB";
@@ -37,6 +38,58 @@ server.use((request, response, next) => {
     next?.();
   }
 });
+const validateBookDataMiddleware: Middleware = async (
+  request,
+  response,
+  next
+) => {
+  // Skip validation for non-POST, PUT, or PATCH requests
+  if (["POST", "PUT", "PATCH"].includes(request.method as AllowedHTTPMethods)) {
+    const book = await request.body;
+    const bodyFields = [
+      "title",
+      "author",
+      "publisher",
+      "genre",
+      "isbnNo",
+      "numOfPages",
+      "totalNumOfCopies",
+      "availableNumberOfCopies",
+    ];
+
+    if (book) {
+      if (request.method === "POST" || request.method === "PUT") {
+        // Check if all required fields are present in the request body
+        for (const field of bodyFields) {
+          if (!book[field]) {
+            response.writeHead(400, { "Content-Type": "application/json" });
+            response.end(JSON.stringify({ error: `${field} is required` }));
+            return;
+          }
+        }
+      } else if (request.method === "PATCH") {
+        // Check if at least one field is present in the request body
+        const hasAtLeastOneField = bodyFields.some(field => field in book);
+
+        if (!hasAtLeastOneField) {
+          response.writeHead(400, { "Content-Type": "application/json" });
+          response.end(JSON.stringify({ error: "At least one field must be present for PATCH" }));
+          return;
+        }
+      }
+
+      // Proceed to the next middleware or route handler
+      next?.();
+    } else {
+      response.writeHead(400, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ error: "Request body is missing" }));
+    }
+  } else {
+    // If not a POST, PUT, or PATCH request, simply call next
+    next?.();
+  }
+};
+
 
 // Handler functions
 
@@ -48,14 +101,15 @@ async function handleInsertBook(
   try {
     const book = await request.body;
     console.log(book);
-
     const requiredFields = [
       "title",
       "author",
       "publisher",
       "genre",
+      "isbnNo",
       "numOfPages",
       "totalNumOfCopies",
+      "availableNumberOfCopies",
     ];
     for (const field of requiredFields) {
       if (!book[field]) {
@@ -223,8 +277,11 @@ async function handleListBooks(
 }
 
 // Route definitions
-server.post("/library/books", handleInsertBook);
-server.patch("/library/book", handleUpdateBook);
-server.get("/library/books", handleGetBookById);
+// server.post("/library/books", handleInsertBook);
+// server.post("/library/books", [validateBookInput, handleInsertBook]);
+// server.patch("/library/book", handleUpdateBook);
+server.post("/library/books", validateBookDataMiddleware, handleInsertBook);
+server.patch("/library/books", validateBookDataMiddleware, handleUpdateBook);
+server.get("/library/book", handleGetBookById);
 server.delete("/library/book", handleDeleteBook);
 server.get("/library/books", handleListBooks);
