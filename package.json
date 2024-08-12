@@ -5,13 +5,16 @@
     "db:generate": "drizzle-kit generate mysql2",
     "db:migrate": "ts-node src/drizzle/migrate.ts",
     "server:book": "tsx watch ./book-management/book.server.ts",
-    "server:member": "tsx watch ./member-management/member.server.ts"
+    "server:member": "tsx watch ./src/member-management/member.server.ts"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.0.2",
     "@eslint/js": "9.0.0",
     "@faker-js/faker": "8.4.1",
+    "@types/bcrypt": "5.0.2",
+    "@types/cookie-parser": "1.4.7",
     "@types/express": "4.17.21",
+    "@types/jsonwebtoken": "9.0.6",
     "@types/node": "^20.14.9",
     "drizzle-kit": "0.23.0",
     "eslint": "8.57.0",
@@ -24,12 +27,15 @@
     "vitest": "1.6.0"
   },
   "dependencies": {
+    "bcrypt": "5.1.1",
     "chalk": "4.1.2",
     "commander": "12.1.0",
+    "cookie-parser": "1.4.6",
     "dotenv": "16.4.5",
     "drizzle-orm": "0.32.0",
     "express": "4.19.2",
     "globals": "15.8.0",
+    "jsonwebtoken": "9.0.2",
     "mysql2": "3.10.2",
     "tsx": "4.16.2",
     "zod": "3.23.8"

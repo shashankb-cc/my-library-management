@@ -1,7 +1,7 @@
 import { TransactionRepository } from "./transaction.repository";
 import { describe, expect, test, beforeAll } from "vitest";
-import { LibraryDataset } from "../db/library-dataset";
-import { Database } from "../db/ds";
+import { LibraryDataset } from "../../db/library-dataset";
+import { Database } from "../../db/ds";
 import { faker } from "@faker-js/faker";
 import { ITransaction, ITransactionBase } from "./models/transaction.model";
 import { IMemberBase } from "../member-management/models/member.model";

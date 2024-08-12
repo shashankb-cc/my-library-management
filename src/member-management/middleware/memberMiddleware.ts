@@ -6,7 +6,6 @@ export const validateMemberDataMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  console.log("Validation middleware");
 
   const member = req.body;
   const bodyFields = ["firstName", "lastName", "email", "phoneNumber"];

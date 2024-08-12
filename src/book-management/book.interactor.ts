@@ -1,16 +1,16 @@
 import { ZodError } from "zod";
-import { NumberParser, readLine, StringParser } from "../core/input.utils";
-import { IInteractor } from "../core/interactor";
-import { Menu } from "../core/menu";
+import { NumberParser, readLine, StringParser } from "../../core/input.utils";
+import { IInteractor } from "../../core/interactor";
+import { Menu } from "../../core/menu";
 import { BookRepository } from "./book.repository";
 import { IBook, IBookBase, bookSchema } from "./models/books.model";
 import chalk from "chalk";
-import { LibraryInteractor } from "../src/library.interactor";
-import { viewCompleteList } from "../core/pagination";
-import { LibraryDB } from "../db/libraryDB";
-import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
+import { LibraryInteractor } from "../library.interactor";
+import { viewCompleteList } from "../../core/pagination";
+import { LibraryDB } from "../../db/libraryDB";
+import { MySqlConnectionPoolFactory } from "../../db/mysql-adapter";
 import { MySql2Database } from "drizzle-orm/mysql2";
-import { printTableWithoutIndex } from "../core/printTableFormat";
+import { printTableWithoutIndex } from "../../core/printTableFormat";
 
 export class BookInteractor implements IInteractor {
   menu = new Menu("Book-Management", [

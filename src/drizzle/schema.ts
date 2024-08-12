@@ -25,7 +25,7 @@ export const members = mysqlTable("members", {
   email: varchar("email", { length: 100 }).unique().notNull(),
   phoneNumber: varchar("phoneNumber", { length: 10 }).notNull(),
   password: varchar("password", { length: 45 }).notNull(),
-  refreshToken: varchar("password", { length: 45 }).unique(),
+  refreshToken: varchar("refreshToken", { length: 256 }).unique(),
 });
 
 export const transactions = mysqlTable("transactions", {

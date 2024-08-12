@@ -4,10 +4,12 @@ export interface IMemberBase {
   lastName: string;
   email: string;
   phoneNumber: string;
+  password: string;
 }
 
 export interface IMember extends IMemberBase {
   id: number;
+  refreshToken: string | null;
 }
 
 export const memberSchema = z.object({
@@ -17,4 +19,5 @@ export const memberSchema = z.object({
   phoneNumber: z.string().regex(/^\+?(\d[\d-. ]+)?(\([\d-. ]+\))?[\d-. ]+\d$/, {
     message: "Entered phone number is Invalid",
   }),
+  password: z.string().min(8),
 });

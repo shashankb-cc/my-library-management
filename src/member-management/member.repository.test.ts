@@ -1,7 +1,7 @@
 import { describe, expect, test, beforeAll } from "vitest";
 import { MemberRepository } from "./member.repository";
-import { Database } from "../db/ds";
-import { LibraryDataset } from "../db/library-dataset";
+import { Database } from "../../db/ds";
+import { LibraryDataset } from "../../db/library-dataset";
 import { faker } from "@faker-js/faker";
 import { rm } from "fs/promises";
 import { IMemberBase } from "./models/member.model";

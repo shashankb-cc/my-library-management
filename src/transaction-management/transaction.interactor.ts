@@ -1,21 +1,21 @@
-import { IInteractor } from "../core/interactor";
-import { LibraryInteractor } from "../src/library.interactor";
+import { IInteractor } from "../../core/interactor";
+import { LibraryInteractor } from "../library.interactor";
 import { TransactionRepository } from "./transaction.repository";
 import {
   NumberParser,
   StringParser,
   readChar,
   readLine,
-} from "../core/input.utils";
+} from "../../core/input.utils";
 import { ITransaction, ITransactionBase } from "./models/transaction.model";
-import { Menu } from "../core/menu";
+import { Menu } from "../../core/menu";
 import { MemberRepository } from "../member-management/member.repository";
 import { BookRepository } from "../book-management/book.repository";
 import chalk from "chalk";
-import { viewCompleteList } from "../core/pagination";
-import { formatDate } from "../core/formatdate";
-import { printTableWithoutIndex } from "../core/printTableFormat";
-import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
+import { viewCompleteList } from "../../core/pagination";
+import { formatDate } from "../../core/formatdate";
+import { printTableWithoutIndex } from "../../core/printTableFormat";
+import { MySqlConnectionPoolFactory } from "../../db/mysql-adapter";
 import { MySql2Database } from "drizzle-orm/mysql2";
 
 export class TransactionInteractor implements IInteractor {

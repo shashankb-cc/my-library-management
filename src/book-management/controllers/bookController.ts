@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
-import { getDrizzleDB } from "../../src/drizzle/drizzleDB";
+import { getDrizzleDB } from "../../drizzle/drizzleDB";
 import { BookRepository } from "../book.repository";
 const db = getDrizzleDB();
 const bookRepository = new BookRepository(db);

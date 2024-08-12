@@ -1,8 +1,8 @@
-import { IPageRequest, IPagesResponse } from "../core/pagination";
-import { IRepository } from "../core/repository";
+import { IPageRequest, IPagesResponse } from "../../core/pagination";
+import { IRepository } from "../../core/repository";
 import { IMemberBase, IMember } from "./models/member.model";
 import { MySql2Database } from "drizzle-orm/mysql2";
-import { members } from "../src/drizzle/schema";
+import { members } from "../drizzle/schema";
 import { eq, count, or, like } from "drizzle-orm";
 import chalk from "chalk";
 
@@ -11,11 +11,12 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
 
   async create(data: IMemberBase): Promise<IMember | undefined> {
     try {
-      const member: Omit<IMember, "id"> = { ...data };
+      const member: Omit<IMember, "id"> = { ...data, refreshToken: null };
       const [result] = await this.db
         .insert(members)
         .values(member)
         .$returningId();
+      console.log("result", result);
       if (result) {
         const [insertedMember] = await this.db
           .select()
@@ -24,6 +25,7 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
         return insertedMember as IMember;
       }
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }
@@ -44,6 +46,7 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
         return updatedMember as IMember;
       }
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }
@@ -119,6 +122,36 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
 
       if (result) {
         return result.value;
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getByEmail(email: string): Promise<IMember | undefined> {
+    try {
+      const [result] = await this.db
+        .select()
+        .from(members)
+        .where(eq(members.email, email))
+        .limit(1);
+
+      if (result) {
+        return result as IMember;
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getByRefreshToken(refreshToken: string): Promise<IMember | undefined> {
+    try {
+      const [result] = await this.db
+        .select()
+        .from(members)
+        .where(eq(members.refreshToken, refreshToken))
+        .limit(1);
+
+      if (result) {
+        return result as IMember;
       }
     } catch (error) {
       throw error;

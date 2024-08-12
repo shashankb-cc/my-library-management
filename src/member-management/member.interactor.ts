@@ -1,14 +1,14 @@
-import { NumberParser, readLine, StringParser } from "../core/input.utils";
-import { IInteractor } from "../core/interactor";
-import { Menu } from "../core/menu";
+import { NumberParser, readLine, StringParser } from "../../core/input.utils";
+import { IInteractor } from "../../core/interactor";
+import { Menu } from "../../core/menu";
 import { IMember, IMemberBase, memberSchema } from "./models/member.model";
 import { MemberRepository } from "./member.repository";
 import chalk from "chalk";
 import { ZodError } from "zod";
-import { LibraryInteractor } from "../src/library.interactor";
-import { LibraryDataset } from "../db/library-dataset";
-import { viewCompleteList } from "../core/pagination";
-import { MySqlConnectionPoolFactory } from "../db/mysql-adapter";
+import { LibraryInteractor } from "../library.interactor";
+import { LibraryDataset } from "../../db/library-dataset";
+import { viewCompleteList } from "../../core/pagination";
+import { MySqlConnectionPoolFactory } from "../../db/mysql-adapter";
 import { MySql2Database } from "drizzle-orm/mysql2";
 
 const menu = new Menu("Member-Management", [

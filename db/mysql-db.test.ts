@@ -3,7 +3,7 @@ import { AppEnvs } from "../read-env";
 import "dotenv/config";
 import { MySqlQueryGenerator } from "../libs/mysql-query-generator.";
 import { SimpleWhereExpression, WhereExpression } from "../libs/types";
-import { IBook } from "../book-management/models/books.model";
+import { IBook } from "../src/book-management/models/books.model";
 describe("my sql db adapter tests", () => {
   let mySQLAdapter: MySQLAdapter;
   beforeAll(async () => {
