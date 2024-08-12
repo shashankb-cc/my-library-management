@@ -5,7 +5,7 @@ import {
   SimpleWhereExpression,
   OrWhereExpression,
 } from "./types";
-import { IBook } from "../book-management/models/books.model";
+import { IBook } from "../src/book-management/models/books.model";
 type User = {
   name: string;
   email: string;

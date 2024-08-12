@@ -1,5 +1,5 @@
 import { log } from "console";
-import { IBook, IBookBase } from "../book-management/models/books.model";
+import { IBook, IBookBase } from "../src/book-management/models/books.model";
 import { AppEnvs } from "../read-env";
 import { LibraryDB } from "./libraryDB";
 import { DBConfig, MySQLAdapter } from "./mysql-db";
@@ -94,7 +94,10 @@ describe("", () => {
         value: ["A Book on C", "Programming in C"],
       },
     };
-    const selectQuery1 = await db.select("books", whereCOndition,1,10,["author","title"]);
+    const selectQuery1 = await db.select("books", whereCOndition, 1, 10, [
+      "author",
+      "title",
+    ]);
     console.log(selectQuery1);
   });
 });

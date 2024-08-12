@@ -1,8 +1,8 @@
-import { BookInteractor } from "../book-management/book.interactor";
+import { BookInteractor } from "./book-management/book.interactor";
 import { IInteractor } from "../core/interactor";
 import { Menu } from "../core/menu";
-import { MemberInteractor } from "../member-management/member.interactor";
-import { TransactionInteractor } from "../transaction-management/transaction.interactor";
+import { MemberInteractor } from "./member-management/member.interactor";
+import { TransactionInteractor } from "./transaction-management/transaction.interactor";
 import chalk from "chalk";
 import { DBConfig } from "../db/mysql-db";
 import { AppEnvs } from "../read-env";

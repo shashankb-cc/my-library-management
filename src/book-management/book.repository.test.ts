@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, test, afterEach } from "vitest";
 import { BookRepository } from "./book.repository";
-import { Database } from "../db/ds";
+import { Database } from "../../db/ds";
 import { IBook, IBookBase } from "./models/books.model";
 import { faker } from "@faker-js/faker";
-import { LibraryDataset } from "../db/library-dataset";
+import { LibraryDataset } from "../../db/library-dataset";
 import { rm } from "fs/promises";
 
 describe("Book Repository Tests", () => {

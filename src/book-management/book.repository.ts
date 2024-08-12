@@ -1,8 +1,8 @@
-import { IPageRequest, IPagesResponse } from "../core/pagination";
-import { IRepository } from "../core/repository";
+import { IPageRequest, IPagesResponse } from "../../core/pagination";
+import { IRepository } from "../../core/repository";
 import { IBook, IBookBase } from "./models/books.model";
 import { MySql2Database } from "drizzle-orm/mysql2";
-import { books } from "../src/drizzle/schema";
+import { books } from "../drizzle/schema";
 import { eq, count, or, like } from "drizzle-orm";
 import chalk from "chalk";
 
