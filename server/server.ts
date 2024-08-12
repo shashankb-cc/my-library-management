@@ -1,6 +1,6 @@
 import http from "node:http";
 import { URL } from "node:url";
-import { AppError } from "../core/appError";
+import AppError from "../core/appError";
 
 export interface CustomRequest extends http.IncomingMessage {
   body?: any;
@@ -32,6 +32,7 @@ export class HTTPServer {
     DELETE: {},
   };
   private appMiddlewares: Middleware[] = [];
+  private pathSpecificProcessors: RequestProcessorPathMap = {};
 
   constructor(port: number) {
     this.port = port;
@@ -57,7 +58,7 @@ export class HTTPServer {
 
   private handleRequest(request: CustomRequest, response: CustomResponse) {
     console.log("Handling request:", request.method, request.url);
-    if (request.method !== undefined) {
+    if (request.method) {
       const pathMap = this.middlewareMap[request.method as AllowedHTTPMethods];
       const url = new URL(request.url ?? "", `http://${request.headers.host}`);
       const routeMiddlewares = pathMap[url.pathname] || [];
@@ -111,11 +112,7 @@ export class HTTPServer {
   ): NextMiddlewareExecutor {
     return (error?: Error) => {
       if (error) {
-        if (error instanceof AppError) {
-          response.writeHead(error.code).end(error.message);
-        } else {
-          response.writeHead(500).end(error.message);
-        }
+        response.writeHead(500).end(error.message);
       } else {
         if (nextIndex < middlewares.length) {
           this.executeMiddlewares(request, response, middlewares, nextIndex);

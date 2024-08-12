@@ -7,6 +7,8 @@ import {
 } from "../server/server";
 import { BookRepository } from "./book.repository";
 import { getDrizzleDB } from "../src/drizzle/drizzleDB";
+import AppError from "../core/appError";
+import { IBook } from "./models/books.model";
 
 const db = getDrizzleDB();
 const bookRepository = new BookRepository(db);
@@ -44,8 +46,10 @@ const validateBookDataMiddleware: Middleware = async (
   next
 ) => {
   // Skip validation for non-POST, PUT, or PATCH requests
+  console.log("Validation middleware");
   if (["POST", "PUT", "PATCH"].includes(request.method as AllowedHTTPMethods)) {
     const book = await request.body;
+    request.body = book;
     const bodyFields = [
       "title",
       "author",
@@ -59,7 +63,6 @@ const validateBookDataMiddleware: Middleware = async (
 
     if (book) {
       if (request.method === "POST" || request.method === "PUT") {
-        // Check if all required fields are present in the request body
         for (const field of bodyFields) {
           if (!book[field]) {
             response.writeHead(400, { "Content-Type": "application/json" });
@@ -67,19 +70,24 @@ const validateBookDataMiddleware: Middleware = async (
             return;
           }
         }
+        next?.();
       } else if (request.method === "PATCH") {
         // Check if at least one field is present in the request body
-        const hasAtLeastOneField = bodyFields.some(field => field in book);
+        const hasAtLeastOneField = bodyFields.some((field) => field in book);
 
         if (!hasAtLeastOneField) {
           response.writeHead(400, { "Content-Type": "application/json" });
-          response.end(JSON.stringify({ error: "At least one field must be present for PATCH" }));
+          response.end(
+            JSON.stringify({
+              error: "At least one field must be present for PATCH",
+            })
+          );
           return;
         }
+        next?.();
       }
 
       // Proceed to the next middleware or route handler
-      next?.();
     } else {
       response.writeHead(400, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ error: "Request body is missing" }));
@@ -90,16 +98,16 @@ const validateBookDataMiddleware: Middleware = async (
   }
 };
 
-
 // Handler functions
 
 // Inserting a book
-async function handleInsertBook(
+// Insert a new book
+const handleInsertBook: Middleware = async (
   request: CustomRequest,
   response: CustomResponse
-) {
+) => {
   try {
-    const book = await request.body;
+    const book = request.body;
     console.log(book);
     const requiredFields = [
       "title",
@@ -129,13 +137,13 @@ async function handleInsertBook(
       response.end(JSON.stringify({ error: error.message }));
     }
   }
-}
+};
 
-// Updating a book
-async function handleUpdateBook(
+// Update a book
+const handleUpdateBook: Middleware = async (
   request: CustomRequest,
   response: CustomResponse
-) {
+) => {
   try {
     const url = new URL(request.url ?? "", `http://${request.headers.host}`);
     const bookId = Number(url.searchParams.get("id"));
@@ -147,7 +155,7 @@ async function handleUpdateBook(
       return;
     }
 
-    const data = await request.body;
+    const data = request.body;
     console.log(data);
 
     const updatedBook = await bookRepository.update(bookId, data);
@@ -169,13 +177,13 @@ async function handleUpdateBook(
       .writeHead(500, { "Content-Type": "text/plain" })
       .end("Internal Server Error");
   }
-}
+};
 
-// Searching by ID
-async function handleGetBookById(
+// Get a book by ID
+const handleGetBookById: Middleware = async (
   request: CustomRequest,
   response: CustomResponse
-) {
+) => {
   const url = new URL(request.url ?? "", `http://${request.headers.host}`);
   const bookId = Number(url.searchParams.get("id"));
   if (isNaN(bookId)) {
@@ -201,13 +209,13 @@ async function handleGetBookById(
       .writeHead(500, { "Content-Type": "text/plain" })
       .end("Internal Server Error");
   }
-}
+};
 
-// Deleting a book
-async function handleDeleteBook(
+// Delete a book
+const handleDeleteBook: Middleware = async (
   request: CustomRequest,
   response: CustomResponse
-) {
+) => {
   const url = new URL(request.url ?? "", `http://${request.headers.host}`);
   const bookId = Number(url.searchParams.get("id"));
   if (isNaN(bookId)) {
@@ -236,13 +244,13 @@ async function handleDeleteBook(
       .writeHead(500, { "Content-Type": "text/plain" })
       .end("Internal Server Error");
   }
-}
+};
 
-// Listing books with pagination and search
-async function handleListBooks(
+// List books with pagination and search
+const handleListBooks: Middleware = async (
   request: CustomRequest,
   response: CustomResponse
-) {
+) => {
   const url = new URL(request.url ?? "", `http://${request.headers.host}`);
   const limit = Number(url.searchParams.get("limit") ?? 5);
   const offset = Number(url.searchParams.get("offset") ?? 0);
@@ -274,12 +282,9 @@ async function handleListBooks(
       .writeHead(500, { "Content-Type": "text/plain" })
       .end("Internal Server Error");
   }
-}
+};
 
-// Route definitions
-// server.post("/library/books", handleInsertBook);
-// server.post("/library/books", [validateBookInput, handleInsertBook]);
-// server.patch("/library/book", handleUpdateBook);
+// Route definitions 
 server.post("/library/books", validateBookDataMiddleware, handleInsertBook);
 server.patch("/library/books", validateBookDataMiddleware, handleUpdateBook);
 server.get("/library/book", handleGetBookById);
