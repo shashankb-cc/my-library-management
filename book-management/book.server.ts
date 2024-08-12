@@ -1,292 +1,34 @@
+import express, { Request, Response } from "express";
 import {
-  HTTPServer,
-  CustomRequest,
-  CustomResponse,
-  AllowedHTTPMethods,
-  Middleware,
-} from "../server/server";
-import { BookRepository } from "./book.repository";
-import { getDrizzleDB } from "../src/drizzle/drizzleDB";
-import AppError from "../core/appError";
-import { IBook } from "./models/books.model";
+  handleBooks,
+  handleDeleteBook,
+  handleInsertBook,
+  handleUpdateBook,
+} from "./controllers/bookController";
+import { validateBookDataMiddleware } from "./middleware/bookMiddleware";
 
-const db = getDrizzleDB();
-const bookRepository = new BookRepository(db);
-const server = new HTTPServer(3000);
+const app = express();
+const router = express.Router();
+const port = 3000;
 
 // Middleware to set headers and parse JSON body
-server.use((request, response, next) => {
-  response.setHeader("Content-Type", "application/json");
-  response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-  next?.();
+app.use(express.json());
+app.use((req: Request, res: Response, next) => {
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+  next();
 });
 
-server.use((request, response, next) => {
-  if (["POST", "PUT", "PATCH"].includes(request.method as AllowedHTTPMethods)) {
-    let body = "";
-    request.on("data", (chunk) => {
-      body += chunk.toString();
-    });
-    request.on("end", () => {
-      try {
-        request.body = JSON.parse(body);
-        next?.();
-      } catch (error) {
-        response.writeHead(400, { "Content-Type": "application/json" });
-        response.end(JSON.stringify({ error: "Invalid JSON" }));
-      }
-    });
-  } else {
-    next?.();
-  }
+router
+  .route("/api/books")
+  .post(validateBookDataMiddleware, handleInsertBook)
+  .patch(validateBookDataMiddleware, handleUpdateBook)
+  .delete(handleDeleteBook)
+  .get(handleBooks); //same handler for full list and single book
+
+// registering the router
+app.use(router);
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });
-const validateBookDataMiddleware: Middleware = async (
-  request,
-  response,
-  next
-) => {
-  // Skip validation for non-POST, PUT, or PATCH requests
-  console.log("Validation middleware");
-  if (["POST", "PUT", "PATCH"].includes(request.method as AllowedHTTPMethods)) {
-    const book = await request.body;
-    request.body = book;
-    const bodyFields = [
-      "title",
-      "author",
-      "publisher",
-      "genre",
-      "isbnNo",
-      "numOfPages",
-      "totalNumOfCopies",
-      "availableNumberOfCopies",
-    ];
-
-    if (book) {
-      if (request.method === "POST" || request.method === "PUT") {
-        for (const field of bodyFields) {
-          if (!book[field]) {
-            response.writeHead(400, { "Content-Type": "application/json" });
-            response.end(JSON.stringify({ error: `${field} is required` }));
-            return;
-          }
-        }
-        next?.();
-      } else if (request.method === "PATCH") {
-        // Check if at least one field is present in the request body
-        const hasAtLeastOneField = bodyFields.some((field) => field in book);
-
-        if (!hasAtLeastOneField) {
-          response.writeHead(400, { "Content-Type": "application/json" });
-          response.end(
-            JSON.stringify({
-              error: "At least one field must be present for PATCH",
-            })
-          );
-          return;
-        }
-        next?.();
-      }
-
-      // Proceed to the next middleware or route handler
-    } else {
-      response.writeHead(400, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ error: "Request body is missing" }));
-    }
-  } else {
-    // If not a POST, PUT, or PATCH request, simply call next
-    next?.();
-  }
-};
-
-// Handler functions
-
-// Inserting a book
-// Insert a new book
-const handleInsertBook: Middleware = async (
-  request: CustomRequest,
-  response: CustomResponse
-) => {
-  try {
-    const book = request.body;
-    console.log(book);
-    const requiredFields = [
-      "title",
-      "author",
-      "publisher",
-      "genre",
-      "isbnNo",
-      "numOfPages",
-      "totalNumOfCopies",
-      "availableNumberOfCopies",
-    ];
-    for (const field of requiredFields) {
-      if (!book[field]) {
-        throw new Error(`${field} is required`);
-      }
-    }
-
-    const result = await bookRepository.create(book);
-    response.writeHead(201, { "Content-Type": "application/json" });
-    response.end(
-      "Book Created Successfully and Created Book is " +
-        JSON.stringify({ result })
-    );
-  } catch (error) {
-    if (error instanceof Error) {
-      response.writeHead(500, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ error: error.message }));
-    }
-  }
-};
-
-// Update a book
-const handleUpdateBook: Middleware = async (
-  request: CustomRequest,
-  response: CustomResponse
-) => {
-  try {
-    const url = new URL(request.url ?? "", `http://${request.headers.host}`);
-    const bookId = Number(url.searchParams.get("id"));
-    console.log(bookId);
-    if (isNaN(bookId)) {
-      response
-        .writeHead(400, { "Content-Type": "text/plain" })
-        .end("Invalid book ID");
-      return;
-    }
-
-    const data = request.body;
-    console.log(data);
-
-    const updatedBook = await bookRepository.update(bookId, data);
-    if (updatedBook) {
-      response
-        .writeHead(200, { "Content-Type": "application/json" })
-        .end(
-          "Book Updated Successfully and the Updated Book is " +
-            JSON.stringify(updatedBook)
-        );
-    } else {
-      response
-        .writeHead(404, { "Content-Type": "text/plain" })
-        .end("Book not found");
-    }
-  } catch (error) {
-    console.log("Error is", error);
-    response
-      .writeHead(500, { "Content-Type": "text/plain" })
-      .end("Internal Server Error");
-  }
-};
-
-// Get a book by ID
-const handleGetBookById: Middleware = async (
-  request: CustomRequest,
-  response: CustomResponse
-) => {
-  const url = new URL(request.url ?? "", `http://${request.headers.host}`);
-  const bookId = Number(url.searchParams.get("id"));
-  if (isNaN(bookId)) {
-    response
-      .writeHead(400, { "Content-Type": "text/plain" })
-      .end("Invalid book ID");
-    return;
-  }
-  try {
-    const book = await bookRepository.getById(bookId);
-    if (book) {
-      response
-        .writeHead(200, { "Content-Type": "application/json" })
-        .end(JSON.stringify(book));
-    } else {
-      response
-        .writeHead(404, { "Content-Type": "text/plain" })
-        .end("Book not found");
-    }
-  } catch (error) {
-    console.log(error);
-    response
-      .writeHead(500, { "Content-Type": "text/plain" })
-      .end("Internal Server Error");
-  }
-};
-
-// Delete a book
-const handleDeleteBook: Middleware = async (
-  request: CustomRequest,
-  response: CustomResponse
-) => {
-  const url = new URL(request.url ?? "", `http://${request.headers.host}`);
-  const bookId = Number(url.searchParams.get("id"));
-  if (isNaN(bookId)) {
-    response
-      .writeHead(400, { "Content-Type": "text/plain" })
-      .end("Invalid book ID");
-    return;
-  }
-  try {
-    const deletedBook = await bookRepository.delete(bookId);
-    if (deletedBook) {
-      response
-        .writeHead(200, { "Content-Type": "application/json" })
-        .end(
-          `Book with Id ${bookId} deleted successfully and Deleted Book is  ` +
-            JSON.stringify(deletedBook)
-        );
-    } else {
-      response
-        .writeHead(404, { "Content-Type": "text/plain" })
-        .end("Book not found");
-    }
-  } catch (error) {
-    console.log(error);
-    response
-      .writeHead(500, { "Content-Type": "text/plain" })
-      .end("Internal Server Error");
-  }
-};
-
-// List books with pagination and search
-const handleListBooks: Middleware = async (
-  request: CustomRequest,
-  response: CustomResponse
-) => {
-  const url = new URL(request.url ?? "", `http://${request.headers.host}`);
-  const limit = Number(url.searchParams.get("limit") ?? 5);
-  const offset = Number(url.searchParams.get("offset") ?? 0);
-  const search = url.searchParams.get("search") ?? "";
-
-  const currentPage = Math.floor(offset / limit) + 1;
-
-  try {
-    const params = { limit, offset, search };
-    const [result, totalCount] = await Promise.all([
-      bookRepository.list(params),
-      bookRepository.getTotalCount(),
-    ]);
-
-    const totalPages = Math.ceil(totalCount! / limit);
-
-    if (result) {
-      response
-        .writeHead(200, { "Content-Type": "application/json" })
-        .end(JSON.stringify({ currentPage, totalPages, books: result }));
-    } else {
-      response
-        .writeHead(404, { "Content-Type": "text/plain" })
-        .end("Books not found");
-    }
-  } catch (error) {
-    console.log(error);
-    response
-      .writeHead(500, { "Content-Type": "text/plain" })
-      .end("Internal Server Error");
-  }
-};
-
-// Route definitions 
-server.post("/library/books", validateBookDataMiddleware, handleInsertBook);
-server.patch("/library/books", validateBookDataMiddleware, handleUpdateBook);
-server.get("/library/book", handleGetBookById);
-server.delete("/library/book", handleDeleteBook);
-server.get("/library/books", handleListBooks);

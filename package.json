@@ -4,12 +4,14 @@
     "test": "vitest",
     "db:generate": "drizzle-kit generate mysql2",
     "db:migrate": "ts-node src/drizzle/migrate.ts",
-    "server": "tsx watch ./book-management/book.server.ts"
+    "server:book": "tsx watch ./book-management/book.server.ts",
+    "server:member": "tsx watch ./member-management/member.server.ts"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.0.2",
     "@eslint/js": "9.0.0",
     "@faker-js/faker": "8.4.1",
+    "@types/express": "4.17.21",
     "@types/node": "^20.14.9",
     "drizzle-kit": "0.23.0",
     "eslint": "8.57.0",
