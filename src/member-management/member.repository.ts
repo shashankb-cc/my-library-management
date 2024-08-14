@@ -2,7 +2,7 @@ import { IPageRequest, IPagesResponse } from "../../core/pagination";
 import { IRepository } from "../../core/repository";
 import { IMemberBase, IMember } from "./models/member.model";
 import { MySql2Database } from "drizzle-orm/mysql2";
-import { members } from "../drizzle/schema";
+import { members, userRefreshTokens } from "../drizzle/schema";
 import { eq, count, or, like } from "drizzle-orm";
 import chalk from "chalk";
 
@@ -11,7 +11,7 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
 
   async create(data: IMemberBase): Promise<IMember | undefined> {
     try {
-      const member: Omit<IMember, "id"> = { ...data, refreshToken: null };
+      const member: Omit<IMember, "id"> = { ...data };
       const [result] = await this.db
         .insert(members)
         .values(member)
@@ -142,18 +142,38 @@ export class MemberRepository implements IRepository<IMemberBase, IMember> {
       throw error;
     }
   }
-  async getByRefreshToken(refreshToken: string): Promise<IMember | undefined> {
-    try {
-      const [result] = await this.db
-        .select()
-        .from(members)
-        .where(eq(members.refreshToken, refreshToken))
-        .limit(1);
 
-      if (result) {
-        return result as IMember;
-      }
+  async insertRefreshToken(tokenData: {
+    memberId: number;
+    refreshToken: string;
+  }) {
+    return this.db.insert(userRefreshTokens).values(tokenData).execute();
+  }
+
+  async getByToken(refreshToken: string) {
+    try {
+      const result = await this.db
+        .select()
+        .from(userRefreshTokens)
+        .where(eq(userRefreshTokens.refreshToken, refreshToken))
+        .execute();
+      return result;
     } catch (error) {
+      console.error("Error getting token:", error);
+      throw error;
+    }
+  }
+
+  async deleteByToken(refreshToken: string) {
+    try {
+      const result = await this.db
+        .delete(userRefreshTokens)
+        .where(eq(userRefreshTokens.refreshToken, refreshToken))
+        .execute();
+
+      return result;
+    } catch (error) {
+      console.error("Error deleting token:", error);
       throw error;
     }
   }
