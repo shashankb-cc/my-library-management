@@ -5,11 +5,11 @@ export interface IMemberBase {
   email: string;
   phoneNumber: string;
   password: string;
+  role: "librarian" | "member" | null;
 }
 
 export interface IMember extends IMemberBase {
   id: number;
-  refreshToken: string | null;
 }
 
 export const memberSchema = z.object({

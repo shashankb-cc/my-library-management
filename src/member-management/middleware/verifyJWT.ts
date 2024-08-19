@@ -8,6 +8,7 @@ interface CustomRequest extends Request {
   user?: {
     id: number;
     email: string;
+    role: string;
   };
 }
 
@@ -16,17 +17,18 @@ export const verifyJWT = (
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers["authorization"];
-  if (!authHeader) return res.sendStatus(401); // Unauthorized
+  // const authHeader = req.headers["authorization"];
+  const token = req.cookies.accessToken;
+  if (!token) return res.sendStatus(401); // Unauthorized
 
-  const token = authHeader.split(" ")[1];
+  // const token = authHeader.split(" ")[1];
   jwt.verify(
     token,
     process.env.ACCESS_TOKEN_SECRET as string,
     (err: any, decoded: any) => {
       if (err) return res.sendStatus(403); // Forbidden
-      
-      req.user = { id: decoded.id, email: decoded.email };
+
+      req.user = { id: decoded.id, email: decoded.email, role: decoded.role };
       console.log(req.user);
       next();
     }

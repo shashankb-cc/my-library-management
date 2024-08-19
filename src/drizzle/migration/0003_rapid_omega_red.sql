@@ -1,0 +1,1 @@
+ALTER TABLE `members` ADD `role` enum('librarian','member');

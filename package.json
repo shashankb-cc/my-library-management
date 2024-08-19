@@ -4,7 +4,7 @@
     "test": "vitest",
     "db:generate": "drizzle-kit generate mysql2",
     "db:migrate": "ts-node src/drizzle/migrate.ts",
-    "server:book": "tsx watch ./book-management/book.server.ts",
+    "server:book": "tsx watch ./src//book-management/book.server.ts",
     "server:member": "tsx watch ./src/member-management/member.server.ts"
   },
   "devDependencies": {
